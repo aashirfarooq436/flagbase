@@ -23,7 +23,10 @@ function setup() {
       now: NOW,
     }),
   ]);
-  return { useCase: new ChangePasswordUseCase(users, new FakePasswordHasher()), users };
+  return {
+    useCase: new ChangePasswordUseCase(users, new FakePasswordHasher()),
+    users,
+  };
 }
 
 const input = {

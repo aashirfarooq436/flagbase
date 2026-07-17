@@ -9,7 +9,10 @@ export type UpdateProfileInput = {
 };
 
 /** Updates a user's own display name. Email is immutable in v1, so it isn't touched. */
-export class UpdateProfileUseCase implements IUseCase<UpdateProfileInput, User> {
+export class UpdateProfileUseCase implements IUseCase<
+  UpdateProfileInput,
+  User
+> {
   constructor(private readonly userRepository: IUserRepository) {}
 
   async execute(input: UpdateProfileInput): Promise<User> {

@@ -1,9 +1,6 @@
 import type { User } from "../../../../domain/user/user.entity";
 import type { IUserRepository } from "../../../../domain/user/user.repository";
-import {
-  NotFoundError,
-  UnauthenticatedError,
-} from "../../../../shared/errors";
+import { NotFoundError, UnauthenticatedError } from "../../../../shared/errors";
 import { Password } from "../../../../shared/password.vo";
 import type { IPasswordHasher } from "../../../ports";
 import type { IUseCase } from "../../use-case";
@@ -22,9 +19,10 @@ export type ChangePasswordInput = {
  * error. The delivery layer should surface it on the change-password form rather than
  * treating it as a session expiry.
  */
-export class ChangePasswordUseCase
-  implements IUseCase<ChangePasswordInput, User>
-{
+export class ChangePasswordUseCase implements IUseCase<
+  ChangePasswordInput,
+  User
+> {
   constructor(
     private readonly userRepository: IUserRepository,
     private readonly passwordHasher: IPasswordHasher,

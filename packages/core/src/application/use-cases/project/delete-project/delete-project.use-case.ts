@@ -19,9 +19,10 @@ export type DeleteProjectInput = {
  * multi-document cascade, and silently orphaning them is worse. The caller deletes the
  * flags first. (A cascading delete via the Unit of Work is a plausible later refinement.)
  */
-export class DeleteProjectUseCase
-  implements IUseCase<DeleteProjectInput, void>
-{
+export class DeleteProjectUseCase implements IUseCase<
+  DeleteProjectInput,
+  void
+> {
   constructor(
     private readonly projectRepository: IProjectRepository,
     private readonly flagRepository: IFlagRepository,

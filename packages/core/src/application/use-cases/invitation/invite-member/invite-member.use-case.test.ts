@@ -6,7 +6,11 @@ import { Role } from "../../../../domain/member/role.vo";
 import { Organization } from "../../../../domain/organization/organization.entity";
 import { User } from "../../../../domain/user/user.entity";
 import { Email } from "../../../../shared/email.vo";
-import { ConflictError, NotFoundError, ValidationError } from "../../../../shared/errors";
+import {
+  ConflictError,
+  NotFoundError,
+  ValidationError,
+} from "../../../../shared/errors";
 import { FakeClock } from "../../../../lib/test-support/fake-clock";
 import { FakeEmailSender } from "../../../../lib/test-support/fake-email-sender";
 import { FakeIdGenerator } from "../../../../lib/test-support/fake-id-generator";

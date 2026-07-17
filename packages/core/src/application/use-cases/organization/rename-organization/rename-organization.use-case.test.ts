@@ -11,13 +11,19 @@ function setup() {
   const organizations = new InMemoryOrganizationRepository([
     Organization.create({ id: "org-1", name: "Acme", now: NOW }),
   ]);
-  return { useCase: new RenameOrganizationUseCase(organizations), organizations };
+  return {
+    useCase: new RenameOrganizationUseCase(organizations),
+    organizations,
+  };
 }
 
 describe("RenameOrganizationUseCase", () => {
   it("renames the organization", async () => {
     const { useCase, organizations } = setup();
-    const org = await useCase.execute({ organizationId: "org-1", name: "Acme Inc" });
+    const org = await useCase.execute({
+      organizationId: "org-1",
+      name: "Acme Inc",
+    });
 
     expect(org.name).toBe("Acme Inc");
     expect((await organizations.findById("org-1"))!.name).toBe("Acme Inc");

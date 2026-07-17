@@ -9,7 +9,12 @@ const NOW = new Date("2026-07-17T00:00:00.000Z");
 
 function setup() {
   const projects = new InMemoryProjectRepository([
-    Project.create({ id: "project-1", organizationId: "org-1", name: "API", now: NOW }),
+    Project.create({
+      id: "project-1",
+      organizationId: "org-1",
+      name: "API",
+      now: NOW,
+    }),
   ]);
   return { useCase: new GetProjectUseCase(projects) };
 }
@@ -17,7 +22,10 @@ function setup() {
 describe("GetProjectUseCase", () => {
   it("returns the project", async () => {
     const { useCase } = setup();
-    const project = await useCase.execute({ organizationId: "org-1", projectId: "project-1" });
+    const project = await useCase.execute({
+      organizationId: "org-1",
+      projectId: "project-1",
+    });
     expect(project.name).toBe("API");
   });
 

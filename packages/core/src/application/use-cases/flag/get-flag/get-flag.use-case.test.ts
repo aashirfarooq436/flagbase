@@ -21,7 +21,12 @@ function setup() {
     }),
   ]);
   const projects = new InMemoryProjectRepository([
-    Project.create({ id: "project-1", organizationId: "org-1", name: "API", now: NOW }),
+    Project.create({
+      id: "project-1",
+      organizationId: "org-1",
+      name: "API",
+      now: NOW,
+    }),
   ]);
   return { useCase: new GetFlagUseCase(flags, projects) };
 }
@@ -29,7 +34,10 @@ function setup() {
 describe("GetFlagUseCase", () => {
   it("returns the flag", async () => {
     const { useCase } = setup();
-    const flag = await useCase.execute({ organizationId: "org-1", flagId: "flag-1" });
+    const flag = await useCase.execute({
+      organizationId: "org-1",
+      flagId: "flag-1",
+    });
     expect(flag.key.value).toBe("dark-mode");
   });
 

@@ -12,12 +12,11 @@ export type RevokeInvitationInput = {
  * The organization cancels a pending invitation (identified by id, from the members UI).
  * Distinct from reject, which the invitee triggers via the token.
  */
-export class RevokeInvitationUseCase
-  implements IUseCase<RevokeInvitationInput, Invitation>
-{
-  constructor(
-    private readonly invitationRepository: IInvitationRepository,
-  ) {}
+export class RevokeInvitationUseCase implements IUseCase<
+  RevokeInvitationInput,
+  Invitation
+> {
+  constructor(private readonly invitationRepository: IInvitationRepository) {}
 
   async execute(input: RevokeInvitationInput): Promise<Invitation> {
     const invitation = await this.invitationRepository.findById(

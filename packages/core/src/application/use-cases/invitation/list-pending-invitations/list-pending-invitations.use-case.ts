@@ -16,12 +16,11 @@ export type ListPendingInvitationsInput = {
  * expired-but-not-yet-acted invitation is still Pending; the delivery layer can mark it
  * expired from expiresAt when rendering.
  */
-export class ListPendingInvitationsUseCase
-  implements IUseCase<ListPendingInvitationsInput, Invitation[]>
-{
-  constructor(
-    private readonly invitationRepository: IInvitationRepository,
-  ) {}
+export class ListPendingInvitationsUseCase implements IUseCase<
+  ListPendingInvitationsInput,
+  Invitation[]
+> {
+  constructor(private readonly invitationRepository: IInvitationRepository) {}
 
   async execute(input: ListPendingInvitationsInput): Promise<Invitation[]> {
     const invitations = await this.invitationRepository.findByOrganizationId(

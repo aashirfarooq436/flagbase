@@ -7,9 +7,10 @@ export type ListProjectsInput = {
 };
 
 /** Lists an organization's projects. */
-export class ListProjectsUseCase
-  implements IUseCase<ListProjectsInput, Project[]>
-{
+export class ListProjectsUseCase implements IUseCase<
+  ListProjectsInput,
+  Project[]
+> {
   constructor(private readonly projectRepository: IProjectRepository) {}
 
   async execute(input: ListProjectsInput): Promise<Project[]> {

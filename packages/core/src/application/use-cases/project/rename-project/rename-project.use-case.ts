@@ -10,9 +10,10 @@ export type RenameProjectInput = {
 };
 
 /** Renames a project, verifying it belongs to the actor's organization. */
-export class RenameProjectUseCase
-  implements IUseCase<RenameProjectInput, Project>
-{
+export class RenameProjectUseCase implements IUseCase<
+  RenameProjectInput,
+  Project
+> {
   constructor(private readonly projectRepository: IProjectRepository) {}
 
   async execute(input: RenameProjectInput): Promise<Project> {

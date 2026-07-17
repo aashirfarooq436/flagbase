@@ -40,28 +40,44 @@ describe("ChangeMemberRoleUseCase", () => {
   it("throws NotFoundError for an unknown member", async () => {
     const { useCase } = setup([]);
     await expect(
-      useCase.execute({ organizationId: "org-1", memberId: "nope", newRole: Role.Admin }),
+      useCase.execute({
+        organizationId: "org-1",
+        memberId: "nope",
+        newRole: Role.Admin,
+      }),
     ).rejects.toBeInstanceOf(NotFoundError);
   });
 
   it("throws ForbiddenError when the member is in another organization", async () => {
     const { useCase } = setup([member("m-1", Role.Member, "org-2")]);
     await expect(
-      useCase.execute({ organizationId: "org-1", memberId: "m-1", newRole: Role.Admin }),
+      useCase.execute({
+        organizationId: "org-1",
+        memberId: "m-1",
+        newRole: Role.Admin,
+      }),
     ).rejects.toBeInstanceOf(ForbiddenError);
   });
 
   it("refuses to assign the Owner role", async () => {
     const { useCase } = setup([member("m-1", Role.Admin)]);
     await expect(
-      useCase.execute({ organizationId: "org-1", memberId: "m-1", newRole: Role.Owner }),
+      useCase.execute({
+        organizationId: "org-1",
+        memberId: "m-1",
+        newRole: Role.Owner,
+      }),
     ).rejects.toBeInstanceOf(ForbiddenError);
   });
 
   it("refuses to change the current owner's role", async () => {
     const { useCase } = setup([member("m-1", Role.Owner)]);
     await expect(
-      useCase.execute({ organizationId: "org-1", memberId: "m-1", newRole: Role.Admin }),
+      useCase.execute({
+        organizationId: "org-1",
+        memberId: "m-1",
+        newRole: Role.Admin,
+      }),
     ).rejects.toBeInstanceOf(ForbiddenError);
   });
 });

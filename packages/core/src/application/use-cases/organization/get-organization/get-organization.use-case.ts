@@ -8,9 +8,10 @@ export type GetOrganizationInput = {
 };
 
 /** Fetches a single organization. The caller's membership is checked by the delivery layer. */
-export class GetOrganizationUseCase
-  implements IUseCase<GetOrganizationInput, Organization>
-{
+export class GetOrganizationUseCase implements IUseCase<
+  GetOrganizationInput,
+  Organization
+> {
   constructor(
     private readonly organizationRepository: IOrganizationRepository,
   ) {}
@@ -20,9 +21,7 @@ export class GetOrganizationUseCase
       input.organizationId,
     );
     if (organization === null) {
-      throw new NotFoundError(
-        `Organization ${input.organizationId} not found`,
-      );
+      throw new NotFoundError(`Organization ${input.organizationId} not found`);
     }
     return organization;
   }

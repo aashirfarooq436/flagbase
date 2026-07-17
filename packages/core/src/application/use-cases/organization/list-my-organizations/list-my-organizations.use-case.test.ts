@@ -9,8 +9,18 @@ import { ListMyOrganizationsUseCase } from "./list-my-organizations.use-case";
 
 const NOW = new Date("2026-07-17T00:00:00.000Z");
 
-function membership(id: string, organizationId: string, userId: string): Member {
-  return Member.create({ id, organizationId, userId, role: Role.Member, now: NOW });
+function membership(
+  id: string,
+  organizationId: string,
+  userId: string,
+): Member {
+  return Member.create({
+    id,
+    organizationId,
+    userId,
+    role: Role.Member,
+    now: NOW,
+  });
 }
 
 function setup() {

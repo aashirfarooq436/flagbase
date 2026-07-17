@@ -16,9 +16,10 @@ export type CreateProjectInput = {
  * the delivery layer), so there's no parent to load and check — the actor is already a
  * member of it. Name validation happens in `Project.create`.
  */
-export class CreateProjectUseCase
-  implements IUseCase<CreateProjectInput, Project>
-{
+export class CreateProjectUseCase implements IUseCase<
+  CreateProjectInput,
+  Project
+> {
   constructor(
     private readonly projectRepository: IProjectRepository,
     private readonly idGenerator: IIdGenerator,

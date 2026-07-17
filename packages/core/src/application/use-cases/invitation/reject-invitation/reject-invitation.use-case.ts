@@ -16,9 +16,10 @@ export type RejectInvitationInput = {
  * to decline it, and the invitee may not even have an account. Lower-stakes than accept,
  * which is why it needs no authenticated user or email match.
  */
-export class RejectInvitationUseCase
-  implements IUseCase<RejectInvitationInput, Invitation>
-{
+export class RejectInvitationUseCase implements IUseCase<
+  RejectInvitationInput,
+  Invitation
+> {
   constructor(
     private readonly invitationRepository: IInvitationRepository,
     private readonly tokenHasher: ITokenHasher,

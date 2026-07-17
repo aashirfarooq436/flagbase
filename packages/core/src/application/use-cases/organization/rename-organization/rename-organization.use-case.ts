@@ -9,9 +9,10 @@ export type RenameOrganizationInput = {
 };
 
 /** Renames an organization. In v1 the name is the only editable organization setting. */
-export class RenameOrganizationUseCase
-  implements IUseCase<RenameOrganizationInput, Organization>
-{
+export class RenameOrganizationUseCase implements IUseCase<
+  RenameOrganizationInput,
+  Organization
+> {
   constructor(
     private readonly organizationRepository: IOrganizationRepository,
   ) {}
@@ -21,9 +22,7 @@ export class RenameOrganizationUseCase
       input.organizationId,
     );
     if (organization === null) {
-      throw new NotFoundError(
-        `Organization ${input.organizationId} not found`,
-      );
+      throw new NotFoundError(`Organization ${input.organizationId} not found`);
     }
 
     organization.rename(input.name);

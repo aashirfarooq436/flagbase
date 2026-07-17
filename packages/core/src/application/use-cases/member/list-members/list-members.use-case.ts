@@ -10,9 +10,10 @@ export type ListMembersInput = {
  * Lists an organization's members. Returns the Member entities (userId + role); enriching
  * them with user names/emails is a delivery-layer join, not the domain's concern.
  */
-export class ListMembersUseCase
-  implements IUseCase<ListMembersInput, Member[]>
-{
+export class ListMembersUseCase implements IUseCase<
+  ListMembersInput,
+  Member[]
+> {
   constructor(private readonly memberRepository: IMemberRepository) {}
 
   async execute(input: ListMembersInput): Promise<Member[]> {

@@ -13,9 +13,10 @@ export type ListMyOrganizationsInput = {
  * Membership is the source of truth (a User holds no orgId), so this reads the user's
  * memberships and loads each organization.
  */
-export class ListMyOrganizationsUseCase
-  implements IUseCase<ListMyOrganizationsInput, Organization[]>
-{
+export class ListMyOrganizationsUseCase implements IUseCase<
+  ListMyOrganizationsInput,
+  Organization[]
+> {
   constructor(
     private readonly memberRepository: IMemberRepository,
     private readonly organizationRepository: IOrganizationRepository,

@@ -16,7 +16,12 @@ const NOW = new Date("2026-07-17T00:00:00.000Z");
 
 function setup(flags: Flag[] = []) {
   const projects = new InMemoryProjectRepository([
-    Project.create({ id: "project-1", organizationId: "org-1", name: "API", now: NOW }),
+    Project.create({
+      id: "project-1",
+      organizationId: "org-1",
+      name: "API",
+      now: NOW,
+    }),
   ]);
   const flagRepo = new InMemoryFlagRepository(flags);
   return { useCase: new DeleteProjectUseCase(projects, flagRepo), projects };

@@ -24,7 +24,10 @@ function setup() {
 describe("UpdateProfileUseCase", () => {
   it("updates the display name", async () => {
     const { useCase, users } = setup();
-    const user = await useCase.execute({ userId: "user-1", name: "Aashir Farooq" });
+    const user = await useCase.execute({
+      userId: "user-1",
+      name: "Aashir Farooq",
+    });
 
     expect(user.name).toBe("Aashir Farooq");
     expect((await users.findById("user-1"))!.name).toBe("Aashir Farooq");

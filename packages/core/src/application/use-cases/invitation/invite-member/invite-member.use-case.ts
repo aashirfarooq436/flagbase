@@ -34,9 +34,10 @@ export type InviteMemberInput = {
  * The raw token appears only in the email; the invitation stores its hash. `Invitation.create`
  * rejects the Owner role — ownership is transferred, not invited.
  */
-export class InviteMemberUseCase
-  implements IUseCase<InviteMemberInput, Invitation>
-{
+export class InviteMemberUseCase implements IUseCase<
+  InviteMemberInput,
+  Invitation
+> {
   constructor(
     private readonly organizationRepository: IOrganizationRepository,
     private readonly userRepository: IUserRepository,
@@ -54,9 +55,7 @@ export class InviteMemberUseCase
       input.organizationId,
     );
     if (organization === null) {
-      throw new NotFoundError(
-        `Organization ${input.organizationId} not found`,
-      );
+      throw new NotFoundError(`Organization ${input.organizationId} not found`);
     }
 
     const email = new Email(input.email);

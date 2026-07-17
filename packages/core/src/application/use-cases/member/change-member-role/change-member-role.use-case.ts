@@ -18,9 +18,10 @@ export type ChangeMemberRoleInput = {
  * owner's role (that would leave the organization ownerless). Both are domain rules the
  * use-case can enforce because it loads the member.
  */
-export class ChangeMemberRoleUseCase
-  implements IUseCase<ChangeMemberRoleInput, Member>
-{
+export class ChangeMemberRoleUseCase implements IUseCase<
+  ChangeMemberRoleInput,
+  Member
+> {
   constructor(private readonly memberRepository: IMemberRepository) {}
 
   async execute(input: ChangeMemberRoleInput): Promise<Member> {

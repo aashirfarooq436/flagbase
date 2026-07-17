@@ -21,7 +21,12 @@ function setup() {
     }),
   ]);
   const projects = new InMemoryProjectRepository([
-    Project.create({ id: "project-1", organizationId: "org-1", name: "API", now: NOW }),
+    Project.create({
+      id: "project-1",
+      organizationId: "org-1",
+      name: "API",
+      now: NOW,
+    }),
   ]);
   return { useCase: new DeleteFlagUseCase(flags, projects), flags };
 }
