@@ -41,7 +41,9 @@ describe("MongoUserRepository", () => {
   });
 
   it("returns null for an unknown email", async () => {
-    expect(await repository.findByEmail(new Email("nobody@example.com"))).toBeNull();
+    expect(
+      await repository.findByEmail(new Email("nobody@example.com")),
+    ).toBeNull();
   });
 
   it("rejects a second account with the same email", async () => {
@@ -59,6 +61,8 @@ describe("MongoUserRepository", () => {
     user.setPassword("new-hash");
     await repository.save(user);
 
-    expect((await repository.findById("user-1"))!.passwordHash).toBe("new-hash");
+    expect((await repository.findById("user-1"))!.passwordHash).toBe(
+      "new-hash",
+    );
   });
 });

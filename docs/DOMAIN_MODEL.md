@@ -39,7 +39,7 @@ invariant to its home.
 
 ## 2. Current structure
 
-```
+```text
 packages/core/src/
 ├── shared/                 — the kernel: base class, cross-cutting VO, domain errors, ports
 │   ├── entity.ts
@@ -131,7 +131,7 @@ must go out and supplies the token; infrastructure decides what the email looks 
 
 ## 5. User & authentication
 
-```
+```text
 core/domain/user/
 ├── user.entity.ts       class User
 └── user.repository.ts   interface IUserRepository
@@ -139,7 +139,7 @@ core/domain/user/
 
 ### `User`
 
-```
+```text
 User
   id            string
   email         Email    — immutable in v1; the login identifier
@@ -172,7 +172,7 @@ resolves a session into a domain `User`, and `core` never hears about cookies.
 
 ### `Organization`
 
-```
+```text
 Organization
   id         string
   name       string
@@ -187,7 +187,7 @@ in use-cases (§11).
 
 ### `Member`
 
-```
+```text
 Member
   id              string
   organizationId  string
@@ -203,11 +203,20 @@ naturally instead of needing a special case.
 ### `Role`
 
 ```typescript
-enum Role { Owner = "owner", Admin = "admin", Member = "member" }
+enum Role {
+  Owner = "owner",
+  Admin = "admin",
+  Member = "member",
+}
 
 const ROLE_PERMISSIONS: Record<Role, Permission[]> = {
-  [Role.Owner]:  ["organization:manage", "project:manage", "flag:manage", "member:manage"],
-  [Role.Admin]:  ["project:manage", "flag:manage", "member:read"],
+  [Role.Owner]: [
+    "organization:manage",
+    "project:manage",
+    "flag:manage",
+    "member:manage",
+  ],
+  [Role.Admin]: ["project:manage", "flag:manage", "member:read"],
   [Role.Member]: ["project:read", "flag:read"],
 };
 ```
@@ -220,13 +229,13 @@ CASL layer `manage` subsumes every action, so `flag:manage` already implies `fla
 
 ## 7. Invitation
 
-```
+```text
 core/domain/invitation/
 ├── invitation.entity.ts       class Invitation + enum InvitationStatus
 └── invitation.repository.ts   interface IInvitationRepository
 ```
 
-```
+```text
 Invitation
   id               string
   organizationId   string
@@ -263,7 +272,7 @@ and `accept` also throws once expired. `isExpired(now)` and `isAcceptable(now)` 
 
 ### 8.1 `Project`
 
-```
+```text
 Project
   id              string
   organizationId  string
@@ -279,7 +288,7 @@ authenticate, and a credential nobody uses is just attack surface.
 
 ### 8.2 `Flag`
 
-```
+```text
 Flag
   id                 string
   projectId          string
@@ -350,7 +359,9 @@ interface TargetingRule {
   matches(context: EvaluationContext): boolean;
 }
 
-class UserIdListRule implements TargetingRule { /* the only rule type in v1 */ }
+class UserIdListRule implements TargetingRule {
+  /* the only rule type in v1 */
+}
 ```
 
 New rule types (attribute matching, v2) implement this interface. They do **not** add branches to
@@ -373,7 +384,7 @@ vocabulary (`organization:list`, `organization:read` — cross-tenant, not tenan
 
 ## 10. Entity map
 
-```
+```text
 User ──< Member >── Organization           Member is the join; carries Role
                      │
                      ├──< Invitation        by email; invitee may have no User yet
@@ -392,18 +403,18 @@ PlatformAdmin  [v2]                         separate actor; no tenant relationsh
 
 ## 11. Where each invariant lives
 
-| Invariant                                        | Enforced in                             |
-| ------------------------------------------------ | --------------------------------------- |
-| `RolloutPercentage` is an integer 0–100          | VO constructor                          |
-| `FlagKey` format                                 | VO constructor                          |
-| `Email` shape + normalization                    | VO constructor                          |
-| A user always has a (non-empty) password         | `User` constructor                      |
-| Invitation not expired / still pending on accept | `Invitation.accept(now)`                |
-| Cannot invite as Owner                           | `Invitation` constructor                |
-| Flag disabled ⇒ evaluates false for everyone     | `Flag.evaluate()`                       |
-| Email unique across users                        | use-case + **DB unique index**          |
-| Flag key unique per project                      | use-case + **DB unique index**          |
-| One membership per (organization, user)          | use-case + **DB unique index**          |
+| Invariant                                        | Enforced in                                              |
+| ------------------------------------------------ | -------------------------------------------------------- |
+| `RolloutPercentage` is an integer 0–100          | VO constructor                                           |
+| `FlagKey` format                                 | VO constructor                                           |
+| `Email` shape + normalization                    | VO constructor                                           |
+| A user always has a (non-empty) password         | `User` constructor                                       |
+| Invitation not expired / still pending on accept | `Invitation.accept(now)`                                 |
+| Cannot invite as Owner                           | `Invitation` constructor                                 |
+| Flag disabled ⇒ evaluates false for everyone     | `Flag.evaluate()`                                        |
+| Email unique across users                        | use-case + **DB unique index**                           |
+| Flag key unique per project                      | use-case + **DB unique index**                           |
+| One membership per (organization, user)          | use-case + **DB unique index**                           |
 | An organization has exactly one owner            | use-cases: create-org, change-member-role, remove-member |
 
 The pattern: **entity-local rules go in constructors and methods; cross-row rules go in use-cases

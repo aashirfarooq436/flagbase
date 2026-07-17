@@ -35,12 +35,12 @@ everywhere forever (rollout bucketing) is pure math inside `core`.
 
 ## 2. Dependencies point inward
 
-| Package             | May import                                     | Must NEVER import                         |
-| ------------------- | ---------------------------------------------- | ----------------------------------------- |
-| `core`              | nothing (not even other workspace packages)    | Mongoose, CASL, Next, any npm dep         |
-| `infrastructure`    | `core`, Mongoose, external-service SDKs        | `composition`, `apps/*`                   |
-| `composition` [tbd] | `core`, `infrastructure`                       | `apps/*`                                  |
-| `apps/*` [tbd]      | `core`, `composition`, Next, CASL              | `infrastructure` **directly**             |
+| Package             | May import                                  | Must NEVER import                 |
+| ------------------- | ------------------------------------------- | --------------------------------- |
+| `core`              | nothing (not even other workspace packages) | Mongoose, CASL, Next, any npm dep |
+| `infrastructure`    | `core`, Mongoose, external-service SDKs     | `composition`, `apps/*`           |
+| `composition` [tbd] | `core`, `infrastructure`                    | `apps/*`                          |
+| `apps/*` [tbd]      | `core`, `composition`, Next, CASL           | `infrastructure` **directly**     |
 
 Apps reach infrastructure only through the composition root. No route handler ever `new`s a
 repository. `composition` is the single place concrete classes are constructed.
@@ -52,7 +52,7 @@ In-memory orchestration/decisions (CASL, decorators, wiring) → `lib`.
 
 ## 3. Directory structure
 
-```
+```text
 packages/core/src/
 ├── shared/           kernel — Entity base, Email, errors, ports (pure domain building-blocks)
 ├── domain/<feature>/ entity + value objects + repository INTERFACE  (user, organization,
@@ -96,7 +96,7 @@ Rules:
   the use-case, backstopped by a DB unique index that translates a collision into a `ConflictError`.
 - **Naming:** `flag.entity.ts` → `class Flag`; `rollout-percentage.vo.ts` → `class RolloutPercentage`;
   `flag.repository.ts` → `interface IFlagRepository`; `mongo-flag.repository.ts` → `class
-  MongoFlagRepository`; `flag.model.ts` → `FlagModel`; `flag.mapper.ts` → `class FlagMapper`.
+MongoFlagRepository`; `flag.model.ts` → `FlagModel`; `flag.mapper.ts` → `class FlagMapper`.
   `I`-prefix is **only** for repository interfaces (where impl and interface collide by name).
 - Each entity file opens with a comment block listing its persisted field shape.
 - The persistence mapper is the ONLY place that knows both the document and the entity shape.
@@ -130,7 +130,7 @@ Rules:
 - Native/postinstall builds (esbuild, argon2, mongodb-memory-server) are allow-listed in
   `pnpm-workspace.yaml` (`allowBuilds:`) — pnpm blocks them by default.
 
-```
+```text
 pnpm install                                  # bootstrap
 pnpm test                                      # all packages via turbo
 pnpm check-types                               # all packages
@@ -180,6 +180,6 @@ When work hits one of these, surface it and get a decision — don't invent an a
 - Local git identity is set for this repo (`Aashir Farooq <aashirfarooq436@gmail.com>`); don't touch
   global config.
 - GitHub repos are created via the web UI, not `gh`.
-- **Aashir validates; the agent implements the domain/application code.** Explain *why* alongside
-  *what*. When a decision is questioned, give the honest tradeoff including the case against — not a
+- **Aashir validates; the agent implements the domain/application code.** Explain _why_ alongside
+  _what_. When a decision is questioned, give the honest tradeoff including the case against — not a
   defense of the current approach. Ask before large scope or structural changes.

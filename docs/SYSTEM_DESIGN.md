@@ -39,7 +39,7 @@ Sections marked **[v2]** are designed but not being built yet.
 
 ## 1. Repo structure (Turborepo monorepo)
 
-```
+```text
 flagbase/
 ├── apps/
 │   ├── dashboard/                    — Next.js app, CUSTOMER-facing control plane
@@ -96,7 +96,7 @@ that orchestrate across concepts). A use-case is never nested inside an entity's
 when it mostly concerns one entity, because some use-cases (`InviteMemberUseCase`) legitimately
 need `Organization`, `Member`, and `User` all at once — there's no non-arbitrary "owner" to pick.
 
-```
+```text
 core/src/
 ├── shared/                        — kernel: Entity base, Email, errors, ports
 ├── domain/
@@ -132,11 +132,20 @@ core/src/
 `core/domain/member/role.vo.ts` defines what roles _mean_, as plain data — no CASL import:
 
 ```typescript
-enum Role { Owner = "owner", Admin = "admin", Member = "member" }
+enum Role {
+  Owner = "owner",
+  Admin = "admin",
+  Member = "member",
+}
 
 const ROLE_PERMISSIONS: Record<Role, Permission[]> = {
-  [Role.Owner]:  ["organization:manage", "project:manage", "flag:manage", "member:manage"],
-  [Role.Admin]:  ["project:manage", "flag:manage", "member:read"],
+  [Role.Owner]: [
+    "organization:manage",
+    "project:manage",
+    "flag:manage",
+    "member:manage",
+  ],
+  [Role.Admin]: ["project:manage", "flag:manage", "member:read"],
   [Role.Member]: ["project:read", "flag:read"],
 };
 ```
@@ -153,7 +162,7 @@ Mirrors `core/`'s feature folders 1:1 (it has no use-cases of its own, so no use
 needed) — given `core/flag/flag.repository.ts` declares the interface, the implementation sits
 exactly where you'd look for it:
 
-```
+```text
 infrastructure/src/
 ├── lib/                            technical plumbing
 │   ├── mongoose/connection.ts      ensureConnection(uri) — cached, serverless-safe
@@ -294,7 +303,7 @@ structurally rather than by discipline alone.
 
 ## 6. Frontend API client (`apps/dashboard/lib/api-client`, `lib/hooks`)
 
-```
+```text
 lib/
 ├── api-client/
 │   ├── base-api-service.ts     class BaseApiService { protected get/post/patch/delete(path, body) }
@@ -393,7 +402,7 @@ anti-pattern the brief flagged for persistence-layer leakage, at the auth layer 
 
 ### 9.1 Domain: a new `core/domain/platform-admin/` feature folder
 
-```
+```text
 core/domain/platform-admin/
 ├── platform-admin.entity.ts     class PlatformAdmin { id, email, role: PlatformRole }
 ├── platform-admin.repository.ts interface IPlatformAdminRepository
@@ -410,7 +419,7 @@ is a data change, not a redesign.
 
 ### 9.2 Use-cases — read-only in v1, living in the same `core/use-cases/` namespace
 
-```
+```text
 use-cases/
 ├── list-organizations/         ListOrganizationsUseCase — unscoped, unlike the dashboard
 ├── get-organization-details/   GetOrganizationDetailsUseCase — organization + its projects
