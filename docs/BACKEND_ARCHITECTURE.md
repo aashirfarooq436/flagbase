@@ -124,12 +124,12 @@ core/src/
 ├── application/                  — the use-case layer
 │   ├── ports/                    IClock, IIdGenerator, ITokenGenerator, IPasswordHasher,
 │   │                             ITokenHasher, IEmailSender, IUnitOfWork  (+ barrel)
-│   └── use-cases/                — by ACTION, one folder each
+│   └── use-cases/                — by ACTION, one folder each (all v1 use-cases built + tested)
 │       ├── use-case.ts           interface IUseCase<TInput, TOutput> { execute(input) }
-│       ├── create-flag/  set-flag-enabled/  update-flag-rules/   ← built + tested
-│       ├── evaluate-flag/  list-flags/  sign-up/  sign-in/        ← built + tested
-│       ├── create-organization/  accept-invitation/              ← built + tested (UoW)
-│       └── invite-member/  change-member-role/  remove-member/  create-project/  ← pending
+│       ├── sign-up/  sign-in/
+│       ├── create-organization/  accept-invitation/              (UoW — multi-write)
+│       ├── invite-member/  change-member-role/  remove-member/  create-project/
+│       └── create-flag/  set-flag-enabled/  update-flag-rules/  evaluate-flag/  list-flags/
 └── lib/
     └── test-support/             in-memory fakes (test-only, NOT exported): repos, clock, id-gen, UoW
 ```

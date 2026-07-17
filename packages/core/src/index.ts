@@ -76,8 +76,16 @@ export { SignInUseCase } from "./application/use-cases/sign-in/sign-in.use-case"
 export type { SignInInput } from "./application/use-cases/sign-in/sign-in.use-case";
 export { CreateOrganizationUseCase } from "./application/use-cases/create-organization/create-organization.use-case";
 export type { CreateOrganizationInput } from "./application/use-cases/create-organization/create-organization.use-case";
+export { InviteMemberUseCase } from "./application/use-cases/invite-member/invite-member.use-case";
+export type { InviteMemberInput } from "./application/use-cases/invite-member/invite-member.use-case";
 export { AcceptInvitationUseCase } from "./application/use-cases/accept-invitation/accept-invitation.use-case";
 export type { AcceptInvitationInput } from "./application/use-cases/accept-invitation/accept-invitation.use-case";
+export { ChangeMemberRoleUseCase } from "./application/use-cases/change-member-role/change-member-role.use-case";
+export type { ChangeMemberRoleInput } from "./application/use-cases/change-member-role/change-member-role.use-case";
+export { RemoveMemberUseCase } from "./application/use-cases/remove-member/remove-member.use-case";
+export type { RemoveMemberInput } from "./application/use-cases/remove-member/remove-member.use-case";
+export { CreateProjectUseCase } from "./application/use-cases/create-project/create-project.use-case";
+export type { CreateProjectInput } from "./application/use-cases/create-project/create-project.use-case";
 export { CreateFlagUseCase } from "./application/use-cases/create-flag/create-flag.use-case";
 export type { CreateFlagInput } from "./application/use-cases/create-flag/create-flag.use-case";
 export { SetFlagEnabledUseCase } from "./application/use-cases/set-flag-enabled/set-flag-enabled.use-case";

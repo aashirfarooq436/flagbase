@@ -6,8 +6,11 @@
  * implementations of core's own interfaces — so they don't affect core's purity.
  */
 export { FakeClock } from "./fake-clock";
+export { FakeEmailSender } from "./fake-email-sender";
+export type { SentInvitation } from "./fake-email-sender";
 export { FakeIdGenerator } from "./fake-id-generator";
 export { FakePasswordHasher } from "./fake-password-hasher";
+export { FakeTokenGenerator } from "./fake-token-generator";
 export { FakeTokenHasher } from "./fake-token-hasher";
 export { FakeUnitOfWork } from "./fake-unit-of-work";
 export { InMemoryFlagRepository } from "./in-memory-flag.repository";
