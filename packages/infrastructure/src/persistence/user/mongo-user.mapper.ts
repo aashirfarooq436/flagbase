@@ -1,6 +1,6 @@
 import { Email, User } from "@flagbase/core";
 
-import type { UserDocument } from "./user.model";
+import type { UserDocument } from "./mongo-user.model";
 
 export class UserMapper {
   static toDomain(document: UserDocument): User {

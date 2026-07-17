@@ -4,10 +4,11 @@ import {
   type FlagKey,
   type IFlagRepository,
 } from "@flagbase/core";
+import type { ClientSession } from "mongoose";
 
 import { isDuplicateKeyError } from "../../lib/mongoose/mongo-errors";
-import { FlagMapper } from "./flag.mapper";
-import { FlagModel } from "./flag.model";
+import { FlagMapper } from "./mongo-flag.mapper";
+import { FlagModel } from "./mongo-flag.model";
 
 /**
  * The Mongo-backed IFlagRepository.
@@ -15,10 +16,17 @@ import { FlagModel } from "./flag.model";
  * Reads use .lean() to get plain documents rather than hydrated Mongoose objects —
  * faster, and the mapper wants plain fields anyway. Every read funnels through the
  * mapper so nothing above this layer ever touches a document.
+ *
+ * An optional session binds every operation to a transaction. Non-transactional callers
+ * construct it with no session; the Unit of Work constructs it with one.
  */
 export class MongoFlagRepository implements IFlagRepository {
+  constructor(private readonly session?: ClientSession) {}
+
   async findById(id: string): Promise<Flag | null> {
-    const document = await FlagModel.findById(id).lean();
+    const document = await FlagModel.findById(id, null, {
+      session: this.session,
+    }).lean();
     return document ? FlagMapper.toDomain(document) : null;
   }
 
@@ -26,15 +34,18 @@ export class MongoFlagRepository implements IFlagRepository {
     projectId: string,
     key: FlagKey,
   ): Promise<Flag | null> {
-    const document = await FlagModel.findOne({
-      projectId,
-      key: key.value,
-    }).lean();
+    const document = await FlagModel.findOne(
+      { projectId, key: key.value },
+      null,
+      { session: this.session },
+    ).lean();
     return document ? FlagMapper.toDomain(document) : null;
   }
 
   async findByProjectId(projectId: string): Promise<Flag[]> {
-    const documents = await FlagModel.find({ projectId }).lean();
+    const documents = await FlagModel.find({ projectId }, null, {
+      session: this.session,
+    }).lean();
     return documents.map(FlagMapper.toDomain);
   }
 
@@ -50,6 +61,7 @@ export class MongoFlagRepository implements IFlagRepository {
     try {
       await FlagModel.replaceOne({ _id: document._id }, document, {
         upsert: true,
+        session: this.session,
       });
     } catch (error) {
       if (isDuplicateKeyError(error)) {
@@ -62,6 +74,6 @@ export class MongoFlagRepository implements IFlagRepository {
   }
 
   async delete(id: string): Promise<void> {
-    await FlagModel.deleteOne({ _id: id });
+    await FlagModel.deleteOne({ _id: id }, { session: this.session });
   }
 }

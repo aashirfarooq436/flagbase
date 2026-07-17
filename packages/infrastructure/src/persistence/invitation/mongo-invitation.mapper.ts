@@ -1,6 +1,6 @@
 import { Email, Invitation } from "@flagbase/core";
 
-import type { InvitationDocument } from "./invitation.model";
+import type { InvitationDocument } from "./mongo-invitation.model";
 
 export class InvitationMapper {
   static toDomain(document: InvitationDocument): Invitation {

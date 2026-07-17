@@ -2,7 +2,7 @@ import { ConflictError, Member, Role } from "@flagbase/core";
 import { describe, expect, it } from "vitest";
 
 import { useMongoTestEnv } from "../../lib/test-support/mongo-test-env";
-import { MemberModel } from "./member.model";
+import { MemberModel } from "./mongo-member.model";
 import { MongoMemberRepository } from "./mongo-member.repository";
 
 const NOW = new Date("2026-07-17T00:00:00.000Z");

@@ -9,7 +9,7 @@ import { MongoMemoryServer } from "mongodb-memory-server";
 import mongoose from "mongoose";
 import { afterAll, afterEach, beforeAll, describe, expect, it } from "vitest";
 
-import { FlagModel } from "./flag.model";
+import { FlagModel } from "./mongo-flag.model";
 import { MongoFlagRepository } from "./mongo-flag.repository";
 
 const NOW = new Date("2026-07-17T00:00:00.000Z");

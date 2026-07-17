@@ -2,7 +2,7 @@ import { Email, Invitation, InvitationStatus, Role } from "@flagbase/core";
 import { describe, expect, it } from "vitest";
 
 import { useMongoTestEnv } from "../../lib/test-support/mongo-test-env";
-import { InvitationModel } from "./invitation.model";
+import { InvitationModel } from "./mongo-invitation.model";
 import { MongoInvitationRepository } from "./mongo-invitation.repository";
 
 const NOW = new Date("2026-07-17T00:00:00.000Z");

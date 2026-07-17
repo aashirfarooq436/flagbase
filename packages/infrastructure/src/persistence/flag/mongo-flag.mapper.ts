@@ -6,7 +6,7 @@ import {
   type TargetingRule,
 } from "@flagbase/core";
 
-import type { FlagDocument, TargetingRuleDocument } from "./flag.model";
+import type { FlagDocument, TargetingRuleDocument } from "./mongo-flag.model";
 
 /**
  * Translates between the persisted document and the domain entity.

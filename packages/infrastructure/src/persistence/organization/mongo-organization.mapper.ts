@@ -1,6 +1,6 @@
 import { Organization } from "@flagbase/core";
 
-import type { OrganizationDocument } from "./organization.model";
+import type { OrganizationDocument } from "./mongo-organization.model";
 
 export class OrganizationMapper {
   static toDomain(document: OrganizationDocument): Organization {

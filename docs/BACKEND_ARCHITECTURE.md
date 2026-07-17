@@ -182,20 +182,27 @@ forever — otherwise a user flickers in and out of a feature on page refresh.
 ## 4. `packages/infrastructure`
 
 The `persistence/` feature folders mirror `core`'s `domain/` 1:1 (no use-case mirror — infrastructure
-has no use-cases); `lib/` holds the technical plumbing. Named `persistence/`, not `domain/`, because
-the domain lives in `core` — what's here is the Mongo adapters that persist it. **Built and
-integration-tested** against an in-process MongoDB (`mongodb-memory-server`).
+has no use-cases). Named `persistence/`, not `domain/`, because the domain lives in `core` — what's
+here is the adapters that persist it. **Built and integration-tested** against an in-process MongoDB
+(`mongodb-memory-server`, a 1-node replica set so transactions work).
+
+Files are named by DB technology (`mongo-<feature>.model/mapper/repository`) so a future SQL backend
+coexists in the same feature folder as `sql-<feature>.*` siblings — the domain never changes, only a
+new set of adapter files appears. DB-wide plumbing (connection, error mapping, the Unit of Work)
+lives under `lib/mongoose/`, not in a feature folder; a SQL backend would get its own `lib/<lib>/`.
 
 ```text
 infrastructure/src/
-├── lib/                            technical plumbing (connection, error mapping, test helpers)
-│   ├── mongoose/
+├── adapters/                       DB-agnostic port implementations (see below) — argon2, crypto, email
+├── lib/
+│   ├── mongoose/                   Mongo-wide plumbing (spans all features)
 │   │   ├── connection.ts           ensureConnection(uri) — cached, serverless-safe; used by withDb
-│   │   └── mongo-errors.ts         isDuplicateKeyError() — maps code 11000 → ConflictError
+│   │   ├── mongo-errors.ts         isDuplicateKeyError() — maps code 11000 → ConflictError
+│   │   └── mongo-unit-of-work.ts   MongoUnitOfWork — session.withTransaction over all repos
 │   └── test-support/
-│       └── mongo-test-env.ts       useMongoTestEnv() — spins up an in-process Mongo per test file
-└── persistence/                    mirrors core/domain 1:1 — per feature: model, mapper, repository
-    ├── user/                       user.model, user.mapper, mongo-user.repository
+│       └── mongo-test-env.ts       useMongoTestEnv() — a 1-node MongoMemoryReplSet per test file
+└── persistence/                    mirrors core/domain 1:1 — per feature, per DB technology:
+    ├── user/                       mongo-user.model, mongo-user.mapper, mongo-user.repository
     ├── organization/
     ├── member/                     (+ unique index on organizationId+userId)
     ├── invitation/                 (+ unique index on tokenHash)
@@ -203,8 +210,8 @@ infrastructure/src/
     └── flag/                       (+ unique index on projectId+key; discriminated rule docs)
 ```
 
-Non-persistence adapters (an email sender, webhooks) will join `lib/` or their own top-level
-folder — they don't belong under `persistence/`, which is specifically the database layer.
+Non-persistence adapters (hashers, id/token generators, clock, email sender) live in `adapters/` —
+they don't depend on the DB choice, so they're shared across any persistence backend.
 
 The domain-generated UUID is stored as the document `_id` (a `String`), not a Mongo `ObjectId` —
 so the id a use-case mints is the id in the database, and `core` never learns Mongo exists. Port

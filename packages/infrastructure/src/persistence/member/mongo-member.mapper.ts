@@ -1,6 +1,6 @@
 import { Member } from "@flagbase/core";
 
-import type { MemberDocument } from "./member.model";
+import type { MemberDocument } from "./mongo-member.model";
 
 export class MemberMapper {
   static toDomain(document: MemberDocument): Member {

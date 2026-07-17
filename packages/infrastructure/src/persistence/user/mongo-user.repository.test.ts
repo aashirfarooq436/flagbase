@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 
 import { useMongoTestEnv } from "../../lib/test-support/mongo-test-env";
 import { MongoUserRepository } from "./mongo-user.repository";
-import { UserModel } from "./user.model";
+import { UserModel } from "./mongo-user.model";
 
 const NOW = new Date("2026-07-17T00:00:00.000Z");
 const repository = new MongoUserRepository();

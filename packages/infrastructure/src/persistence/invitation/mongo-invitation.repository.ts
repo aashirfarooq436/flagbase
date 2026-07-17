@@ -5,19 +5,26 @@ import {
   type Invitation,
   InvitationStatus,
 } from "@flagbase/core";
+import type { ClientSession } from "mongoose";
 
 import { isDuplicateKeyError } from "../../lib/mongoose/mongo-errors";
-import { InvitationMapper } from "./invitation.mapper";
-import { InvitationModel } from "./invitation.model";
+import { InvitationMapper } from "./mongo-invitation.mapper";
+import { InvitationModel } from "./mongo-invitation.model";
 
 export class MongoInvitationRepository implements IInvitationRepository {
+  constructor(private readonly session?: ClientSession) {}
+
   async findById(id: string): Promise<Invitation | null> {
-    const document = await InvitationModel.findById(id).lean();
+    const document = await InvitationModel.findById(id, null, {
+      session: this.session,
+    }).lean();
     return document ? InvitationMapper.toDomain(document) : null;
   }
 
   async findByTokenHash(tokenHash: string): Promise<Invitation | null> {
-    const document = await InvitationModel.findOne({ tokenHash }).lean();
+    const document = await InvitationModel.findOne({ tokenHash }, null, {
+      session: this.session,
+    }).lean();
     return document ? InvitationMapper.toDomain(document) : null;
   }
 
@@ -25,16 +32,22 @@ export class MongoInvitationRepository implements IInvitationRepository {
     organizationId: string,
     email: Email,
   ): Promise<Invitation | null> {
-    const document = await InvitationModel.findOne({
-      organizationId,
-      email: email.value,
-      status: InvitationStatus.Pending,
-    }).lean();
+    const document = await InvitationModel.findOne(
+      {
+        organizationId,
+        email: email.value,
+        status: InvitationStatus.Pending,
+      },
+      null,
+      { session: this.session },
+    ).lean();
     return document ? InvitationMapper.toDomain(document) : null;
   }
 
   async findByOrganizationId(organizationId: string): Promise<Invitation[]> {
-    const documents = await InvitationModel.find({ organizationId }).lean();
+    const documents = await InvitationModel.find({ organizationId }, null, {
+      session: this.session,
+    }).lean();
     return documents.map(InvitationMapper.toDomain);
   }
 
@@ -44,6 +57,7 @@ export class MongoInvitationRepository implements IInvitationRepository {
     try {
       await InvitationModel.replaceOne({ _id: document._id }, document, {
         upsert: true,
+        session: this.session,
       });
     } catch (error) {
       if (isDuplicateKeyError(error)) {

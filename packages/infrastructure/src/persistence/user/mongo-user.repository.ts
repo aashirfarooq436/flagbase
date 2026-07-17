@@ -4,19 +4,26 @@ import {
   type IUserRepository,
   type User,
 } from "@flagbase/core";
+import type { ClientSession } from "mongoose";
 
 import { isDuplicateKeyError } from "../../lib/mongoose/mongo-errors";
-import { UserMapper } from "./user.mapper";
-import { UserModel } from "./user.model";
+import { UserMapper } from "./mongo-user.mapper";
+import { UserModel } from "./mongo-user.model";
 
 export class MongoUserRepository implements IUserRepository {
+  constructor(private readonly session?: ClientSession) {}
+
   async findById(id: string): Promise<User | null> {
-    const document = await UserModel.findById(id).lean();
+    const document = await UserModel.findById(id, null, {
+      session: this.session,
+    }).lean();
     return document ? UserMapper.toDomain(document) : null;
   }
 
   async findByEmail(email: Email): Promise<User | null> {
-    const document = await UserModel.findOne({ email: email.value }).lean();
+    const document = await UserModel.findOne({ email: email.value }, null, {
+      session: this.session,
+    }).lean();
     return document ? UserMapper.toDomain(document) : null;
   }
 
@@ -26,6 +33,7 @@ export class MongoUserRepository implements IUserRepository {
     try {
       await UserModel.replaceOne({ _id: document._id }, document, {
         upsert: true,
+        session: this.session,
       });
     } catch (error) {
       if (isDuplicateKeyError(error)) {

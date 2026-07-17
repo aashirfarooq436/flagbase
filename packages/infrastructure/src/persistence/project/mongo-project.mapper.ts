@@ -1,6 +1,6 @@
 import { Project } from "@flagbase/core";
 
-import type { ProjectDocument } from "./project.model";
+import type { ProjectDocument } from "./mongo-project.model";
 
 export class ProjectMapper {
   static toDomain(document: ProjectDocument): Project {
