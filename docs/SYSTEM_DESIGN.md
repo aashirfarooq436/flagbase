@@ -12,6 +12,31 @@ API? If yes, it cannot go in `core/`.
 
 ---
 
+## 0. Scope: what v1 actually is
+
+**v1 is a learning milestone, not a release.** It is the control plane only:
+
+| In v1                                          | Deferred to v2                          |
+| ---------------------------------------------- | --------------------------------------- |
+| `packages/core`                                | `packages/sdk` (§7)                     |
+| `packages/infrastructure`                      | `apps/admin` + `PlatformAdmin` (§9)     |
+| `packages/composition`                         | `Project.apiKeyHash` + `/api/sdk/rules` |
+| `apps/dashboard` — auth, orgs, team, flags     | Multi-environment, multivariate, audit log |
+
+Nothing consumes flags at runtime in v1. Evaluation is exercised only by the dashboard's "test
+this rule" preview. That's deliberate: build the control plane correctly, then add the data plane.
+
+**Design as though the SDK is coming anyway.** It was the original structural proof of `core`'s
+purity — if `core` imported Mongoose, the SDK build broke immediately. With it deferred, that
+enforcement moves to the package boundary: `packages/core/package.json` carries an empty
+`dependencies` block, so `import mongoose` inside an entity fails to resolve at build time. The
+witness is gone; the mechanism isn't. Every §7 and §9 decision below stays documented because
+adding them in v2 must be *additive* — a new package and new use-cases, not a restructuring.
+
+Sections marked **[v2]** are designed but not being built yet.
+
+---
+
 ## 1. Repo structure (Turborepo monorepo)
 
 ```
@@ -26,8 +51,8 @@ flagbase/
 │   │       ├── casl/                 — buildAbilityFor() — domain Role -> CASL Ability
 │   │       ├── api-client/           — ApiClient + service classes (§6)
 │   │       └── hooks/                — useApiService, useFlags, useOrg, ...
-│   └── admin/                        — Next.js app, PLATFORM-facing (Aashir + future support
-│       │                                staff). Separate deploy/subdomain from dashboard.
+│   └── admin/                        — [v2] Next.js app, PLATFORM-facing (Aashir + future
+│       │                                support staff). Separate deploy/subdomain.
 │       ├── app/
 │       │   ├── api/                  — route.ts handlers, wrapped in withAdminAppHandlers
 │       │   └── (routes)/
@@ -43,9 +68,9 @@ flagbase/
 │   │                                    mappers, repo implementations now; email/webhook/
 │   │                                    storage adapters later. Depends on core. Never
 │   │                                    imported by sdk.
-│   ├── composition/                  — shared composition root (§4), imported by BOTH apps
-│   │                                    so repo/use-case wiring exists in exactly one place.
-│   ├── sdk/                          — published npm package. Depends ONLY on core.
+│   ├── composition/                  — shared composition root (§4). One consumer in v1
+│   │                                    (dashboard); shared with admin in v2.
+│   ├── sdk/                          — [v2] published npm package. Depends ONLY on core.
 │   └── contracts/                    — shared DTO/request-response types used by the API
 │                                        routes (both apps) and their respective ApiClients.
 ├── turbo.json
@@ -197,18 +222,19 @@ folder (`infrastructure/email/`) rather than forcing it into an unrelated one.
 
 ## 4. Composition root (`packages/composition`)
 
-The only place concrete infrastructure classes get `new`'d up and wired into use-cases. It's a
-**shared package**, not something living inside `apps/dashboard`, precisely because a second app
-(`apps/admin`, §9) now needs to wire use-cases to the exact same repositories — duplicating this
-logic per app would mean two places that could drift on how a `MongoFlagRepository` gets
-constructed.
+The only place concrete infrastructure classes get `new`'d up and wired into use-cases.
+
+It's a **shared package** rather than something inside `apps/dashboard`, even though the dashboard
+is its only consumer in v1. When `apps/admin` arrives in v2 it wires to the exact same
+repositories, and duplicating this per app would leave two places that could drift on how a
+`MongoFlagRepository` gets constructed. Keeping it separate now costs one folder; retrofitting it
+later means touching every route.
 
 ```typescript
 // packages/composition/composition-root.ts
 class CompositionRoot {
   private orgRepository = new MongoOrgRepository();
   private flagRepository = new MongoFlagRepository();
-  private platformAdminRepository = new MongoPlatformAdminRepository();
   // ...
 
   // customer-facing use-cases
@@ -219,29 +245,22 @@ class CompositionRoot {
   toggleFlagUseCase = new ToggleFlagUseCase(this.flagRepository);
   evaluateFlagUseCase = new EvaluateFlagUseCase(this.flagRepository);
 
-  // platform-admin-facing use-cases (§9) — same repos, different application rules
-  listOrgsUseCase = new ListOrgsUseCase(this.orgRepository);
-  getOrgDetailsUseCase = new GetOrgDetailsUseCase(
-    this.orgRepository,
-    this.projectRepository,
-  );
-  // ...
+  // [v2] platform-admin-facing use-cases (§9) — same repos, different application rules
+  // listOrgsUseCase = new ListOrgsUseCase(this.orgRepository);
+  // getOrgDetailsUseCase = new GetOrgDetailsUseCase(this.orgRepository, this.projectRepository);
 }
 
 export const composition = new CompositionRoot();
 ```
 
-Each app imports `composition` from `packages/composition` and only ever touches the use-cases
-relevant to it — `apps/dashboard` never references `listOrgsUseCase`, `apps/admin` never
-references `toggleFlagUseCase` (until/unless admin mutation is added, §9). Route handlers in
-either app import ready-made use-case instances — never construct a repository or use-case
-themselves. This is what keeps use-cases trivially unit-testable in isolation: tests construct
-their own `new CreateFlagUseCase(new InMemoryFlagRepository(), ...)`, bypassing this file
-entirely.
+Each app imports `composition` and only ever touches the use-cases relevant to it. Route handlers
+import ready-made use-case instances — never constructing a repository or use-case themselves.
+This is what keeps use-cases trivially unit-testable in isolation: tests construct their own
+`new CreateFlagUseCase(new InMemoryFlagRepository(), ...)`, bypassing this file entirely.
 
-The SDK package needs its own equivalent for its own runtime — wiring `EvaluateFlagUseCase` to a
-polling-based repository instead of Mongo (§7). That one stays inside `packages/sdk` itself,
-since it wires to a repository implementation (`PollingFlagRepository`) that only the SDK uses.
+**[v2]** The SDK will need its own equivalent for its own runtime — wiring `EvaluateFlagUseCase`
+to a polling-based repository instead of Mongo (§7). That one lives inside `packages/sdk`, since
+it wires a repository implementation (`PollingFlagRepository`) only the SDK uses.
 
 ---
 
@@ -342,7 +361,10 @@ directly, then `mutate()` the relevant SWR key. Flag if you'd rather hand-roll h
 
 ---
 
-## 7. SDK package (`packages/sdk`)
+## 7. SDK package (`packages/sdk`) — [v2]
+
+> **Deferred.** Not built in v1 (§0). Documented because `core` must stay shaped so this drops in
+> as a new package rather than a restructuring — that constraint is the reason `core` stays pure.
 
 ```typescript
 class FlagBaseClient {
@@ -396,7 +418,10 @@ calls `EvaluateFlagUseCase` locally, no network round-trip per evaluation.
 
 ---
 
-## 9. Platform Admin app (`apps/admin`)
+## 9. Platform Admin app (`apps/admin`) — [v2]
+
+> **Deferred.** Not built in v1 (§0). Until it exists, support/debugging happens by querying Mongo
+> directly. The `PlatformAdmin` entity and its use-cases are deferred with it.
 
 A second, separate deliverable alongside the customer dashboard: `apps/admin`, used by Aashir
 (and, later, support staff) to operate the platform itself — not a tenant's account. This is

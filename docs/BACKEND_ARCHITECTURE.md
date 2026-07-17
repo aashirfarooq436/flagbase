@@ -4,9 +4,13 @@ The complete backend picture: layers, rules, structure, and the request lifecycl
 — read this to write backend code without needing another document open.
 
 **Scope.** Covers `packages/core`, `packages/infrastructure`, `packages/composition`, and the API
-delivery layer of both apps (`apps/dashboard/app/api`, `apps/admin/app/api`), including the
-SDK-facing rules endpoint. Does not cover the frontend (api-client, hooks) or the SDK client's
-internals — those live in `SYSTEM_DESIGN.md`, which holds the full-stack and monorepo picture.
+delivery layer of `apps/dashboard`. Does not cover the frontend (api-client, hooks) — that lives
+in `SYSTEM_DESIGN.md`, which holds the full-stack and monorepo picture.
+
+**v1 boundary.** The SDK, `apps/admin`, and the SDK-facing rules endpoint are deferred to v2
+(`SYSTEM_DESIGN.md` §0). Sections marked **[v2]** are designed but not being built. The rules in
+this document are written as though all three exist, because they must — the moment `core` is
+allowed to assume it's running inside Next.js, adding them back becomes a rewrite.
 
 ---
 
@@ -23,10 +27,14 @@ makes the rule self-enforcing: `import mongoose` inside an entity fails to resol
 rather than passing review. If you find yourself wanting to add a dependency to `core`, the
 design is wrong — not the rule.
 
-The practical proof is that the same `core` runs in three places with three different sets of
-application rules and three different runtimes: the customer dashboard (Next.js on Vercel), the
-platform admin app, and the published SDK inside a customer's own Node/edge/browser process. If
-`core` ever needs forking for one of them, something has leaked.
+In v1 there is exactly one consumer — the customer dashboard — so nothing external is forcing this
+rule. That's precisely why the empty `dependencies` block matters: it's the only enforcement left.
+
+The rule is not v1-shaped, though. The same `core` is meant to run in three places with three
+different sets of application rules and three different runtimes: the dashboard (Next.js on
+Vercel), the platform admin app **[v2]**, and the published SDK inside a customer's own
+Node/edge/browser process **[v2]**. Design for all three now. If `core` ever needs forking for one
+of them, something has leaked — and you'd discover it in v2, when it's expensive.
 
 ---
 
@@ -62,6 +70,7 @@ Dependencies point inward, always. `infrastructure` knows about `core`; `core` h
 | `infrastructure` | `core`, Mongoose, external-service SDKs         | `composition`, `apps/*`, `sdk`              |
 | `composition`    | `core`, `infrastructure`                        | `apps/*`, `sdk`                             |
 | `apps/*/api`     | `core`, `composition`, `contracts`, Next, CASL  | `infrastructure` **directly**               |
+| `sdk` **[v2]**   | `core` (+ `contracts`, see §13)                  | `infrastructure`, `composition`, `apps/*`   |
 
 The last row matters as much as the first. Apps reach infrastructure only through `composition`.
 If a route handler can `new MongoFlagRepository()`, repository wiring lives in as many places as
@@ -320,7 +329,10 @@ This is the single most likely way this codebase decays. In a Next.js repo it is
 higher here than in a normal app: **any logic left in `route.ts` is logic the SDK physically
 cannot reach**, because the SDK never runs inside Next.js.
 
-### The SDK rules endpoint
+### The SDK rules endpoint — [v2]
+
+> **Deferred.** No SDK in v1, so nothing calls this and `Project` carries no API key yet
+> (`DOMAIN_MODEL.md` §7.1).
 
 `GET /api/sdk/projects/:id/rules` is backend surface but does **not** use `withAppHandlers`. It
 authenticates a **project API key**, not a user session — there is no logged-in user, so
@@ -351,7 +363,11 @@ ignorant that CASL exists, which is what allows the SDK — which has no use for
 
 ---
 
-## 8. Platform admin is a separate actor
+## 8. Platform admin is a separate actor — [v2]
+
+> **Deferred.** Not built in v1; support happens by querying Mongo directly until then. Recorded
+> because the "separate actor" decision constrains how `Role` and auth are modeled *now* — the
+> shortcut it rules out (`if (user.isSuperAdmin)`) is one you'd otherwise take in v1 and regret.
 
 `PlatformAdmin` is not a `Member` with extra powers. Its authority isn't derived from membership
 in any tenant — it operates *across* tenants. Modeling it inside the `Org`/`Member`/`Role` system
@@ -386,7 +402,7 @@ decoupled rather than nominally so.
 Note what step 6 doesn't know: that an HTTP request exists, that a session exists, that Mongo
 exists. That ignorance is the point — it's exactly what lets step 6 also run inside the SDK.
 
-### Read path — SDK evaluating a flag in a customer's runtime
+### Read path — SDK evaluating a flag in a customer's runtime — [v2]
 
 1. `GET /api/sdk/projects/:id/rules`, authenticated by project API key (§6)
 2. SDK caches the ruleset in memory, refreshed on a poll interval (~30s default)
