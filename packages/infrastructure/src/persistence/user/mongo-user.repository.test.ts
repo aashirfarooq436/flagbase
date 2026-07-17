@@ -1,7 +1,7 @@
 import { ConflictError, Email, User } from "@flagbase/core";
 import { describe, expect, it } from "vitest";
 
-import { useMongoTestEnv } from "../../test-support/mongo-test-env";
+import { useMongoTestEnv } from "../../lib/test-support/mongo-test-env";
 import { MongoUserRepository } from "./mongo-user.repository";
 import { UserModel } from "./user.model";
 

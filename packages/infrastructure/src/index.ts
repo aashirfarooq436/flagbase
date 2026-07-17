@@ -1,37 +1,37 @@
-export { ensureConnection } from "./mongoose/connection";
+export { ensureConnection } from "./lib/mongoose/connection";
 
 // User
-export { UserModel } from "./domain/user/user.model";
-export type { UserDocument } from "./domain/user/user.model";
-export { UserMapper } from "./domain/user/user.mapper";
-export { MongoUserRepository } from "./domain/user/mongo-user.repository";
+export { UserModel } from "./persistence/user/user.model";
+export type { UserDocument } from "./persistence/user/user.model";
+export { UserMapper } from "./persistence/user/user.mapper";
+export { MongoUserRepository } from "./persistence/user/mongo-user.repository";
 
 // Organization
-export { OrganizationModel } from "./domain/organization/organization.model";
-export type { OrganizationDocument } from "./domain/organization/organization.model";
-export { OrganizationMapper } from "./domain/organization/organization.mapper";
-export { MongoOrganizationRepository } from "./domain/organization/mongo-organization.repository";
+export { OrganizationModel } from "./persistence/organization/organization.model";
+export type { OrganizationDocument } from "./persistence/organization/organization.model";
+export { OrganizationMapper } from "./persistence/organization/organization.mapper";
+export { MongoOrganizationRepository } from "./persistence/organization/mongo-organization.repository";
 
 // Member
-export { MemberModel } from "./domain/member/member.model";
-export type { MemberDocument } from "./domain/member/member.model";
-export { MemberMapper } from "./domain/member/member.mapper";
-export { MongoMemberRepository } from "./domain/member/mongo-member.repository";
+export { MemberModel } from "./persistence/member/member.model";
+export type { MemberDocument } from "./persistence/member/member.model";
+export { MemberMapper } from "./persistence/member/member.mapper";
+export { MongoMemberRepository } from "./persistence/member/mongo-member.repository";
 
 // Invitation
-export { InvitationModel } from "./domain/invitation/invitation.model";
-export type { InvitationDocument } from "./domain/invitation/invitation.model";
-export { InvitationMapper } from "./domain/invitation/invitation.mapper";
-export { MongoInvitationRepository } from "./domain/invitation/mongo-invitation.repository";
+export { InvitationModel } from "./persistence/invitation/invitation.model";
+export type { InvitationDocument } from "./persistence/invitation/invitation.model";
+export { InvitationMapper } from "./persistence/invitation/invitation.mapper";
+export { MongoInvitationRepository } from "./persistence/invitation/mongo-invitation.repository";
 
 // Project
-export { ProjectModel } from "./domain/project/project.model";
-export type { ProjectDocument } from "./domain/project/project.model";
-export { ProjectMapper } from "./domain/project/project.mapper";
-export { MongoProjectRepository } from "./domain/project/mongo-project.repository";
+export { ProjectModel } from "./persistence/project/project.model";
+export type { ProjectDocument } from "./persistence/project/project.model";
+export { ProjectMapper } from "./persistence/project/project.mapper";
+export { MongoProjectRepository } from "./persistence/project/mongo-project.repository";
 
 // Flag
-export { FlagModel } from "./domain/flag/flag.model";
-export type { FlagDocument } from "./domain/flag/flag.model";
-export { FlagMapper } from "./domain/flag/flag.mapper";
-export { MongoFlagRepository } from "./domain/flag/mongo-flag.repository";
+export { FlagModel } from "./persistence/flag/flag.model";
+export type { FlagDocument } from "./persistence/flag/flag.model";
+export { FlagMapper } from "./persistence/flag/flag.mapper";
+export { MongoFlagRepository } from "./persistence/flag/mongo-flag.repository";

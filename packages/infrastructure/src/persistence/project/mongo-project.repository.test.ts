@@ -1,7 +1,7 @@
 import { Project } from "@flagbase/core";
 import { describe, expect, it } from "vitest";
 
-import { useMongoTestEnv } from "../../test-support/mongo-test-env";
+import { useMongoTestEnv } from "../../lib/test-support/mongo-test-env";
 import { MongoProjectRepository } from "./mongo-project.repository";
 
 const NOW = new Date("2026-07-17T00:00:00.000Z");

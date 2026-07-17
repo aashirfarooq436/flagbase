@@ -6,7 +6,7 @@ import {
   InvitationStatus,
 } from "@flagbase/core";
 
-import { isDuplicateKeyError } from "../../shared/mongo-errors";
+import { isDuplicateKeyError } from "../../lib/mongoose/mongo-errors";
 import { InvitationMapper } from "./invitation.mapper";
 import { InvitationModel } from "./invitation.model";
 

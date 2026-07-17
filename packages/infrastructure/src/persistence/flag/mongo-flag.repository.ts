@@ -5,7 +5,7 @@ import {
   type IFlagRepository,
 } from "@flagbase/core";
 
-import { isDuplicateKeyError } from "../../shared/mongo-errors";
+import { isDuplicateKeyError } from "../../lib/mongoose/mongo-errors";
 import { FlagMapper } from "./flag.mapper";
 import { FlagModel } from "./flag.model";
 

@@ -1,7 +1,7 @@
 import { Email, Invitation, InvitationStatus, Role } from "@flagbase/core";
 import { describe, expect, it } from "vitest";
 
-import { useMongoTestEnv } from "../../test-support/mongo-test-env";
+import { useMongoTestEnv } from "../../lib/test-support/mongo-test-env";
 import { InvitationModel } from "./invitation.model";
 import { MongoInvitationRepository } from "./mongo-invitation.repository";
 

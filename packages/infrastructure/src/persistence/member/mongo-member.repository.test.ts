@@ -1,7 +1,7 @@
 import { ConflictError, Member, Role } from "@flagbase/core";
 import { describe, expect, it } from "vitest";
 
-import { useMongoTestEnv } from "../../test-support/mongo-test-env";
+import { useMongoTestEnv } from "../../lib/test-support/mongo-test-env";
 import { MemberModel } from "./member.model";
 import { MongoMemberRepository } from "./mongo-member.repository";
 

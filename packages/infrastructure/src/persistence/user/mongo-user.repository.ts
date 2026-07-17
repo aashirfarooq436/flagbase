@@ -5,7 +5,7 @@ import {
   type User,
 } from "@flagbase/core";
 
-import { isDuplicateKeyError } from "../../shared/mongo-errors";
+import { isDuplicateKeyError } from "../../lib/mongoose/mongo-errors";
 import { UserMapper } from "./user.mapper";
 import { UserModel } from "./user.model";
 

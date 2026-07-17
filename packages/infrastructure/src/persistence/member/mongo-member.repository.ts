@@ -5,7 +5,7 @@ import {
   Role,
 } from "@flagbase/core";
 
-import { isDuplicateKeyError } from "../../shared/mongo-errors";
+import { isDuplicateKeyError } from "../../lib/mongoose/mongo-errors";
 import { MemberMapper } from "./member.mapper";
 import { MemberModel } from "./member.model";
 
