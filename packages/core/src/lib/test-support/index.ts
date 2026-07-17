@@ -1,0 +1,13 @@
+/**
+ * Test doubles for exercising use-cases with zero infrastructure.
+ *
+ * These are TEST-ONLY and are deliberately NOT re-exported from the package's public
+ * surface (`src/index.ts`). They import nothing external — pure in-memory
+ * implementations of core's own interfaces — so they don't affect core's purity.
+ */
+export { FakeClock } from "./fake-clock";
+export { FakeIdGenerator } from "./fake-id-generator";
+export { FakePasswordHasher } from "./fake-password-hasher";
+export { InMemoryFlagRepository } from "./in-memory-flag.repository";
+export { InMemoryProjectRepository } from "./in-memory-project.repository";
+export { InMemoryUserRepository } from "./in-memory-user.repository";

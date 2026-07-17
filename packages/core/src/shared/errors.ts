@@ -22,7 +22,8 @@ export type DomainErrorCode =
   | "VALIDATION_ERROR"
   | "NOT_FOUND"
   | "CONFLICT"
-  | "FORBIDDEN";
+  | "FORBIDDEN"
+  | "UNAUTHENTICATED";
 
 /** An invariant was violated — a value object rejected its input, or an entity rejected a transition. */
 export class ValidationError extends DomainError {
@@ -59,6 +60,21 @@ export class ConflictError extends DomainError {
  */
 export class ForbiddenError extends DomainError {
   readonly code = "FORBIDDEN" as const;
+
+  constructor(message: string) {
+    super(message);
+  }
+}
+
+/**
+ * Authentication failed — no valid identity (bad credentials, expired session).
+ *
+ * Maps to HTTP 401, distinct from ForbiddenError's 403 (which means "authenticated but
+ * not allowed"). Sign-in uses a single generic message for both "no such email" and
+ * "wrong password" so the error can't be used to enumerate registered accounts.
+ */
+export class UnauthenticatedError extends DomainError {
+  readonly code = "UNAUTHENTICATED" as const;
 
   constructor(message: string) {
     super(message);

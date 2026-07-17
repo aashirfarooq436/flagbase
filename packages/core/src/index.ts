@@ -5,10 +5,12 @@ export {
   NotFoundError,
   ConflictError,
   ForbiddenError,
+  UnauthenticatedError,
 } from "./shared/errors";
 export type { DomainErrorCode } from "./shared/errors";
 export { Entity } from "./shared/entity";
 export { Email } from "./shared/email.vo";
+export { Password } from "./shared/password.vo";
 export type {
   IIdGenerator,
   IClock,
@@ -61,3 +63,23 @@ export { UserIdListRule } from "./domain/flag/targeting-rule";
 export type { TargetingRule } from "./domain/flag/targeting-rule";
 export type { EvaluationContext } from "./domain/flag/evaluation-context";
 export type { IFlagRepository } from "./domain/flag/flag.repository";
+
+// Use-cases
+export type { IUseCase } from "./use-cases/use-case";
+export { SignUpUseCase } from "./use-cases/sign-up/sign-up.use-case";
+export type { SignUpInput } from "./use-cases/sign-up/sign-up.use-case";
+export { SignInUseCase } from "./use-cases/sign-in/sign-in.use-case";
+export type { SignInInput } from "./use-cases/sign-in/sign-in.use-case";
+export { CreateFlagUseCase } from "./use-cases/create-flag/create-flag.use-case";
+export type { CreateFlagInput } from "./use-cases/create-flag/create-flag.use-case";
+export { SetFlagEnabledUseCase } from "./use-cases/set-flag-enabled/set-flag-enabled.use-case";
+export type { SetFlagEnabledInput } from "./use-cases/set-flag-enabled/set-flag-enabled.use-case";
+export { UpdateFlagRulesUseCase } from "./use-cases/update-flag-rules/update-flag-rules.use-case";
+export type {
+  UpdateFlagRulesInput,
+  TargetingRuleInput,
+} from "./use-cases/update-flag-rules/update-flag-rules.use-case";
+export { EvaluateFlagUseCase } from "./use-cases/evaluate-flag/evaluate-flag.use-case";
+export type { EvaluateFlagInput } from "./use-cases/evaluate-flag/evaluate-flag.use-case";
+export { ListFlagsUseCase } from "./use-cases/list-flags/list-flags.use-case";
+export type { ListFlagsInput } from "./use-cases/list-flags/list-flags.use-case";
