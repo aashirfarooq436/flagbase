@@ -55,7 +55,7 @@ export class ConflictError extends DomainError {
  * The actor is not permitted to perform this operation.
  *
  * Distinct from the CASL check at the route boundary: this is for rules the domain
- * itself owns, such as "the last owner of an org cannot be demoted."
+ * itself owns, such as "the last owner of an organization cannot be demoted."
  */
 export class ForbiddenError extends DomainError {
   readonly code = "FORBIDDEN" as const;
