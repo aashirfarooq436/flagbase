@@ -1,0 +1,23 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+
+    // Deliberately ES2022 only — no "DOM", no @types/node.
+    // core cannot reference window, document, process, Buffer, or setTimeout,
+    // because the type system cannot see them. This is the purity rule as a
+    // compiler setting rather than a convention. See docs/BACKEND_ARCHITECTURE.md §1.
+    "lib": ["ES2022"],
+    "types": [],
+
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "noImplicitOverride": true,
+    "verbatimModuleSyntax": true,
+    "isolatedModules": true,
+    "noEmit": true,
+    "skipLibCheck": true
+  },
+  "include": ["src"]
+}
