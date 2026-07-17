@@ -6,10 +6,14 @@ what exists in the domain and where each rule is enforced.
 Architectural rules for `core` (purity, the import matrix, SOLID) live in
 `BACKEND_ARCHITECTURE.md`. This document is about _what is modeled_, not how the layers relate.
 
-**v1 scope.** Everything here is v1 except items marked **[v2]** — currently `PlatformAdmin` (§8)
-and `Project.apiKeyHash` (§7.1), both of which exist only to serve deliverables deferred out of v1
+**v1 scope.** Everything here is v1 except items marked **[v2]** — currently `PlatformAdmin` (§9)
+and `Project`'s API key (§8.1), both of which exist only to serve deliverables deferred out of v1
 (`SYSTEM_DESIGN.md` §0). `Flag.evaluate()` stays in v1 despite nothing consuming it at runtime: it
 is the domain's central business rule and the whole reason the project exists.
+
+**Auth is email + password only.** OAuth/Google sign-in and email verification were removed for
+simplicity (2026-07-17). If you're reading an older draft that mentions `OAuthAccount`, account
+linking, or the pre-registration attack — that design is gone.
 
 ---
 
@@ -20,29 +24,54 @@ is the domain's central business rule and the whole reason the project exists.
 IDs need real entropy and time needs a real clock — both are environmental, so both are ports
 injected from outside (`IIdGenerator`, `IClock`). Rollout bucketing is the opposite: it must
 produce byte-identical results in the dashboard, in a customer's Node server, and in a Cloudflare
-Worker, forever. So it's pure math written directly in `core` (§7.4). If bucketing were injected,
+Worker, forever. So it's pure math written directly in `core` (§8.4). If bucketing were injected,
 two implementations could disagree and the same user would flicker in and out of a feature
 depending on which process evaluated them.
 
 **Invariants live at the narrowest scope that can enforce them.**
 
 A rule that needs only the entity's own fields (`RolloutPercentage` is 0–100) goes in a
-constructor. A rule that needs to see other rows ("an org has exactly one owner") cannot live on
-an entity — it goes in a use-case, usually backed by a database constraint. §10 maps every
+constructor. A rule that needs to see other rows ("an organization has exactly one owner") cannot
+live on an entity — it goes in a use-case, backed by a database constraint. §11 maps every
 invariant to its home.
 
 ---
 
-## 2. Identity and equality
+## 2. Current structure
+
+```
+packages/core/src/
+├── shared/                 — the kernel: base class, cross-cutting VO, domain errors, ports
+│   ├── entity.ts
+│   ├── email.vo.ts
+│   ├── errors.ts
+│   └── ports.ts
+├── domain/
+│   ├── user/               user.entity, user.repository
+│   ├── organization/       organization.entity, organization.repository
+│   ├── member/             member.entity, member.repository, role.vo
+│   ├── invitation/         invitation.entity, invitation.repository
+│   ├── project/            project.entity, project.repository
+│   └── flag/               flag.entity, flag.repository, flag-key.vo,
+│                           rollout-percentage.vo, targeting-rule, bucketing,
+│                           evaluation-context
+└── index.ts                the package's public surface
+```
+
+`shared/` and `domain/` are honest peers, and `use-cases/` will be a third when it lands.
+`invitation/` is its own feature folder, not nested under `member/` — it's a distinct aggregate
+with its own lifecycle, and modeling it under membership would imply an ownership it doesn't have.
+
+---
+
+## 3. Identity and equality
 
 Entities have identity: two `Flag` objects with the same `id` are the same flag, even if their
 fields differ. Value objects have none: two `RolloutPercentage(50)` are interchangeable.
 
-Optionally encode this with a small base class — it's five lines and makes the distinction
-explicit rather than conventional:
+`shared/entity.ts` encodes this in a five-line base class every entity extends:
 
 ```typescript
-// core/shared/entity.ts
 export abstract class Entity {
   protected constructor(readonly id: string) {}
   equals(other: Entity): boolean {
@@ -51,342 +80,226 @@ export abstract class Entity {
 }
 ```
 
+Comparing constructors as well as ids means an `Organization` and a `Flag` that happen to share
+an id string are not treated as equal.
+
 ---
 
-## 3. Shared
-
-```
-core/shared/
-├── entity.ts            abstract class Entity              (§2)
-├── email.vo.ts          class Email
-├── id-generator.ts      interface IIdGenerator
-├── clock.ts             interface IClock
-├── token-generator.ts   interface ITokenGenerator
-├── password-hasher.ts   interface IPasswordHasher
-├── token-hasher.ts      interface ITokenHasher
-└── email-sender.ts      interface IEmailSender
-```
+## 4. Shared kernel
 
 ### `Email`
 
-```typescript
-class Email {
-  readonly value: string;
-  constructor(input: string) {
-    const normalized = input.trim().toLowerCase();
-    // validate shape; throw on invalid
-    this.value = normalized;
-  }
-}
-```
+A value object. Its constructor normalizes (trim + lowercase) and validates shape, so an invalid
+or unnormalized `Email` cannot exist anywhere in the system.
 
-**Normalization is load-bearing, not cosmetic.** Email is the account-linking key (§4.3). If
-`Victim@Example.com` and `victim@example.com` compare as different values, linking silently
-fails and you get duplicate accounts for one person. Normalize once, in the value object, so it's
-impossible to skip.
+Normalization is load-bearing, not cosmetic. Email is the login identifier and unique key. If
+`Aashir@Example.com` and `aashir@example.com` compared as different values, you'd get duplicate
+accounts for one person and a lookup that misses. Normalizing once, in the constructor, makes that
+impossible to skip at a call site.
 
 ### Ports
+
+Interfaces `core` declares and infrastructure implements. All live in `shared/ports.ts`.
 
 | Port              | Contract                                                                 | Why it's a port                                        |
 | ----------------- | ------------------------------------------------------------------------ | ------------------------------------------------------ |
 | `IIdGenerator`    | `generate(): string`                                                     | Entropy is environmental. Fakes give tests stable ids. |
 | `IClock`          | `now(): Date`                                                            | Time is environmental. Lets tests control expiry.      |
-| `ITokenGenerator` | `generate(): string`                                                     | High-entropy secrets (API keys, invite tokens).        |
-| `IPasswordHasher` | `hash(plain): Promise<string>` / `verify(plain, hash): Promise<boolean>` | bcrypt/argon2 is an npm dep — can't live in core.      |
-| `ITokenHasher`    | `hash(token): string` / `verify(token, hash): boolean`                   | Same, for high-entropy secrets.                        |
-| `IEmailSender`    | `send(to: Email, message): Promise<void>`                                | Reaches an external service.                           |
+| `ITokenGenerator` | `generate(): string`                                                     | High-entropy secrets (invitation tokens).              |
+| `IPasswordHasher` | `hash(plain): Promise<string>` / `verify(plain, hash): Promise<boolean>` | argon2 is an npm dep — can't live in core.             |
+| `ITokenHasher`    | `hash(token): string` / `verify(token, hash): boolean`                   | SHA-256 of a high-entropy secret.                      |
+| `IEmailSender`    | `sendInvitation(to, token, organizationName): Promise<void>`             | Reaches an external service.                           |
 
 **`IPasswordHasher` and `ITokenHasher` are deliberately separate ports**, and it's a security
-distinction, not tidiness. Passwords are low-entropy and need deliberately slow hashing
-(bcrypt/argon2). API keys and invite tokens are 32 bytes of randomness, where SHA-256 is
-sufficient and fast. This matters concretely: **every SDK rules request authenticates an API
-key**, so bcrypting it would burn ~100ms of CPU per poll, per customer instance.
+distinction, not tidiness. Passwords are low-entropy and need deliberately slow hashing (argon2).
+Invitation tokens are 32 bytes of randomness, where fast SHA-256 is sufficient — and in v2, where
+every SDK poll authenticates an API key, a slow hash there would burn ~100ms of CPU per request
+for no gain.
 
 `IIdGenerator` and `ITokenGenerator` are also separate despite both returning random strings. IDs
 are public and may appear in URLs; tokens are secrets that must be unguessable. Same shape,
-different threat model — keep them from being casually swapped.
+different threat model.
+
+`IEmailSender` methods are semantic (`sendInvitation`, not `send(subject, body)`) — subject lines
+and templates are presentation, which doesn't belong in the domain. `core` decides an invitation
+must go out and supplies the token; infrastructure decides what the email looks like.
+
+> None of these ports are _implemented_ yet — the implementations (argon2, SHA-256, `crypto.randomUUID`,
+> a system clock, an email adapter) land with the use-case layer that needs them.
 
 ---
 
-## 4. User & authentication
+## 5. User & authentication
 
 ```
-core/user/
-├── user.entity.ts             class User
-├── user.repository.ts         interface IUserRepository
-├── oauth-account.entity.ts    class OAuthAccount
-├── oauth-account.repository.ts interface IOAuthAccountRepository
-└── oauth-provider.vo.ts       enum OAuthProvider
+core/domain/user/
+├── user.entity.ts       class User
+└── user.repository.ts   interface IUserRepository
 ```
 
 ### `User`
 
-```typescript
-class User extends Entity {
-  readonly email: Email; // immutable in v1 (§4.4)
-  private _name: string;
-  private _passwordHash: string | null; // opaque to core; IPasswordHasher produced it
-  private _emailVerifiedAt: Date | null;
-  readonly createdAt: Date;
-
-  get isEmailVerified(): boolean;
-  get hasPassword(): boolean;
-  verifyEmail(now: Date): void;
-  setPassword(hash: string): void;
-  changeName(name: string): void;
-}
+```
+User
+  id            string
+  email         Email    — immutable in v1; the login identifier
+  name          string   — display name
+  passwordHash  string   — every user authenticates with a password
+  createdAt     Date
 ```
 
-A user exists independently of any org. Signing up creates a `User` and nothing else — there is a
-real "signed up, no org yet" state the dashboard must handle. `User` therefore holds **no
-`orgId`**; membership is `Member`'s job (§6).
+**Auth is email + password only.** Every user has a password, so `passwordHash` is a required,
+non-null string — a passwordless `User` cannot be constructed (the constructor rejects an empty
+hash). There is no OAuth, no email verification, no `emailVerifiedAt`.
 
-`passwordHash` is `null` for users who only ever signed in with Google.
+The hash is opaque to `core` — `IPasswordHasher` (argon2) produces it in the sign-up use-case, and
+`core` never sees a plaintext password. `setPassword(hash)` exists for reset/change; it too takes
+an already-hashed value.
 
-### `OAuthAccount`
+A `User` exists independently of any organization: signing up creates a `User` and nothing else,
+so "signed up, no organization yet" is a real state the dashboard must handle. Membership lives in
+`Member` (§6), never as an `organizationId` on `User`.
 
-```typescript
-class OAuthAccount extends Entity {
-  readonly userId: string;
-  readonly provider: OAuthProvider; // Google in v1; Github/Apple slot in later
-  readonly providerAccountId: string; // the provider's stable subject id, not the email
-  readonly createdAt: Date;
-}
-
-enum OAuthProvider {
-  Google = "google",
-}
-```
-
-One `User` has many `OAuthAccount`s — that's what "one user, multiple sign-in methods" means. The
-password is an attribute of the user; an OAuth account is a link to an external identity. They're
-genuinely different things, so they're modeled differently rather than forced into one shape.
-
-Match on `providerAccountId`, never on the email in the OAuth profile — a provider's email can
-change, but the subject id is stable.
-
-### 4.3 Account linking, and the attack it must not enable
-
-The product rule: sign up with email/password, later sign in with Google using the same address,
-and it's one account with two ways in.
-
-The naive implementation of that rule is exploitable. **The pre-registration attack:** an attacker
-signs up with email/password as `victim@example.com` — an address they don't control, and nothing
-stops them, because password signup proves nothing about ownership. Later the real victim signs in
-with Google. The system sees a matching email, merges, and the victim's account now carries an
-attacker-known password. The attacker logs in and reads everything.
-
-The danger is not on Google's side — Google asserts `email_verified`, so a Google identity is
-trustworthy proof of ownership. The danger is merging **into an unverified password account** that
-anyone could have created.
-
-**The rule:** only ever link into an account whose email is verified. Which forces the
-consequence below.
-
-### 4.4 Consequences
-
-**Email verification is v1, not v2.** A password account is unusable until the address is
-verified. Once every account holding `victim@example.com` provably belongs to whoever controls
-that inbox, merging on email is safe by construction. This is also why `IEmailSender` is a v1
-port — invitations need it too (§6.3).
-
-**Email is immutable in v1.** It's the linking key, so changing it means re-verification plus
-reconciling any OAuth account whose provider still asserts the old address. Deliberately deferred:
-changing an email is a designed flow, not a field update.
-
-**A user always has at least one way in.** `passwordHash` set, or at least one `OAuthAccount`.
-Unlinking the last OAuth account when no password exists must be refused — otherwise you lock a
-user out of their own account (§10).
+**Email is immutable in v1.** It's the login identifier and unique key; changing it is a designed
+flow, not a field setter. Deliberately deferred.
 
 Sessions are **not** modeled here. They're an auth-infrastructure concern; the delivery layer
-resolves a session into a domain `User`, and `core` never hears about cookies. This is also what
-keeps the SDK — which has no sessions at all — able to depend on `core`.
+resolves a session into a domain `User`, and `core` never hears about cookies.
 
 ---
 
-## 5. Org
+## 6. Organization & membership
 
-```typescript
-// core/org/org.entity.ts
-class Org extends Entity {
-  private _name: string;
-  readonly createdAt: Date;
-  rename(name: string): void;
-}
+### `Organization`
+
+```
+Organization
+  id         string
+  name       string
+  createdAt  Date
 ```
 
-**There is no `ownerId`.** The owner is the `Member` whose role is `Owner`. Storing it on `Org` as
+**There is no `ownerId`.** The owner is the `Member` whose role is `Owner`. Storing it here as
 well would create two sources of truth that can silently disagree, and transferring ownership
-would mean remembering to update both. This is the brief's §6.5.2 lesson applied: ownership is a
-role-bearing relationship, and relationships are entities.
-
-The invariant "an org has exactly one owner" therefore can't live on `Org` — it has no access to
-members. It lives in use-cases (§10).
-
----
-
-## 6. Membership
-
-```
-core/member/
-├── member.entity.ts       class Member
-├── member.repository.ts   interface IMemberRepository
-├── role.vo.ts             enum Role + ROLE_PERMISSIONS
-├── invitation.entity.ts   class Invitation
-└── invitation.repository.ts
-```
+would mean remembering to update both. Ownership is a role-bearing relationship, and relationships
+are entities. The invariant "exactly one owner" therefore can't live on `Organization` — it lives
+in use-cases (§11).
 
 ### `Member`
 
-```typescript
-class Member extends Entity {
-  readonly orgId: string;
-  readonly userId: string;
-  private _role: Role;
-  readonly createdAt: Date;
-
-  get isOwner(): boolean;
-  changeRole(role: Role): void;
-}
+```
+Member
+  id              string
+  organizationId  string
+  userId          string
+  role            Role
+  createdAt       Date
 ```
 
-The join entity between `User` and `Org`, carrying the role. Because it's an entity rather than an
-array on either side, "owns one org, is a low-privilege member of another" falls out naturally
-instead of needing a special case.
+The join between `User` and `Organization`, carrying the role. Because it's an entity rather than
+an array on either side, "owns one organization, is a low-privilege member of another" falls out
+naturally instead of needing a special case.
 
 ### `Role`
 
 ```typescript
-enum Role {
-  Owner = "owner",
-  Admin = "admin",
-  Member = "member",
-}
+enum Role { Owner = "owner", Admin = "admin", Member = "member" }
 
-const ROLE_PERMISSIONS: Record<Role, string[]> = {
-  [Role.Owner]: [
-    "org:manage",
-    "project:manage",
-    "flag:manage",
-    "member:manage",
-  ],
-  [Role.Admin]: ["project:manage", "flag:manage", "member:read"],
+const ROLE_PERMISSIONS: Record<Role, Permission[]> = {
+  [Role.Owner]:  ["organization:manage", "project:manage", "flag:manage", "member:manage"],
+  [Role.Admin]:  ["project:manage", "flag:manage", "member:read"],
   [Role.Member]: ["project:read", "flag:read"],
 };
 ```
 
-Plain data. CASL never appears here — `apps/*/lib/casl` reads this table and builds an `Ability`
-from it. That's what lets the SDK depend on `core` without dragging CASL along.
-
-### 6.3 `Invitation`
-
-```typescript
-class Invitation extends Entity {
-  readonly orgId: string;
-  readonly email: Email; // invitee may have no account yet
-  readonly role: Role; // role granted on acceptance
-  readonly tokenHash: string; // ITokenHasher; raw token goes in the email only
-  private _status: InvitationStatus;
-  readonly expiresAt: Date;
-  readonly invitedByUserId: string;
-  readonly createdAt: Date;
-
-  isExpired(now: Date): boolean; // computed, not stored
-  accept(now: Date): void; // throws if not Pending or already expired
-  revoke(): void;
-}
-
-enum InvitationStatus {
-  Pending = "pending",
-  Accepted = "accepted",
-  Revoked = "revoked",
-}
-```
-
-**Invites an email, not a userId** — the invitee may not have an account, which is exactly the
-"user exists without an org" case. Accepting is therefore a two-step flow: sign up (or sign in),
-then become a member.
-
-**`Expired` is not a status.** It's computed from `expiresAt`, so no background job is needed to
-sweep stale rows into an expired state. Storing it would mean an invitation's status depends on
-whether a cron ran.
-
-**The token is hashed at rest** and the raw value appears only in the email — same treatment as an
-API key, same `ITokenHasher`. A leaked database must not yield working invite links.
+Plain data. CASL never appears in `core` — the delivery layer reads this table and builds an
+`Ability` from it. `manage` is not listed alongside `read` for the same subject because at the
+CASL layer `manage` subsumes every action, so `flag:manage` already implies `flag:read`.
 
 ---
 
-## 7. Projects & flags
+## 7. Invitation
 
 ```
-core/project/
-├── project.entity.ts      class Project
-└── project.repository.ts
-
-core/flag/
-├── flag.entity.ts             class Flag
-├── flag.repository.ts         interface IFlagRepository
-├── flag-key.vo.ts             class FlagKey
-├── rollout-percentage.vo.ts   class RolloutPercentage
-├── targeting-rule.ts          interface TargetingRule + implementations
-├── bucketing.ts               pure hash — the "must never vary" thing
-└── evaluation-context.ts      type EvaluationContext
+core/domain/invitation/
+├── invitation.entity.ts       class Invitation + enum InvitationStatus
+└── invitation.repository.ts   interface IInvitationRepository
 ```
 
-### 7.1 `Project`
-
-```typescript
-class Project extends Entity {
-  readonly orgId: string;
-  private _name: string;
-  readonly createdAt: Date;
-
-  // [v2] — exists only to authenticate an installed SDK, which v1 doesn't have:
-  // private _apiKeyHash: string;   // ITokenHasher; raw key shown once at creation
-  // rotateApiKey(hash: string): void;
-}
+```
+Invitation
+  id               string
+  organizationId   string
+  email            Email             — invitee may have no account yet
+  role             Role              — never Owner
+  tokenHash        string            — raw token lives only in the email
+  status           InvitationStatus  — pending | accepted | revoked
+  expiresAt        Date
+  invitedByUserId  string
+  createdAt        Date
+  acceptedAt       Date | null
 ```
 
-The container flags live under, and (in v2) the unit an installed SDK authenticates against.
+**Invites an email, not a userId** — the invitee may not have an account yet, which is exactly the
+"signed up, no organization" / "no account at all" case. Accepting is therefore two steps:
+authenticate (signing up if needed), then become a member.
 
-**`apiKeyHash` is deferred with the SDK.** Nothing consumes flags at runtime in v1, so there is no
-key to authenticate — adding a credential nobody uses is surface area with no purpose. It returns
-in v2 as one field plus a hash on creation, not a redesign.
+**`Expired` is not a status.** It's computed from `expiresAt`, so no background job is needed to
+sweep stale rows. Storing it would make an invitation's meaning depend on whether a cron ran.
 
-Note this doesn't remove `ITokenHasher` or `ITokenGenerator` from v1 — invitations still need both
-(§6.3).
+**Cannot invite as Owner.** An organization has exactly one owner, so granting Owner through an
+invitation would create a second or displace the existing one. The constructor rejects it;
+transferring ownership is a separate, deliberate operation.
 
-### 7.2 `Flag`
+**The token is hashed at rest**, appearing in cleartext only in the outbound email — same
+treatment as a password. A leaked database must not yield working invite links.
 
-```typescript
-class Flag extends Entity {
-  readonly projectId: string;
-  readonly key: FlagKey; // immutable — customer code references it
-  private _description: string;
-  private _enabled: boolean; // the master switch
-  private _targetingRules: TargetingRule[]; // ordered; first match wins
-  private _rolloutPercentage: RolloutPercentage;
-  private _defaultValue: boolean; // fallthrough when enabled and nothing matched
-  readonly createdAt: Date;
-  private _updatedAt: Date;
+State machine: `accept(now)` and `revoke()` both throw `ConflictError` from any non-pending state,
+and `accept` also throws once expired. `isExpired(now)` and `isAcceptable(now)` are computed.
 
-  evaluate(context: EvaluationContext): boolean;
-  enable(now: Date): void;
-  disable(now: Date): void;
-  updateRules(
-    rules: TargetingRule[],
-    rollout: RolloutPercentage,
-    now: Date,
-  ): void;
-}
+---
+
+## 8. Projects & flags
+
+### 8.1 `Project`
+
+```
+Project
+  id              string
+  organizationId  string
+  name            string
+  createdAt       Date
+
+  apiKeyHash      string  — [v2] added with the SDK; no runtime consumer in v1
 ```
 
-**`key` is immutable.** It's the identifier customers hardcode into their source. Renaming it
-would silently break their app at runtime — that's a delete-and-recreate, not an edit.
+The container flags live under, and — in v2 — the unit an installed SDK authenticates against. The
+API key is deferred with the SDK: nothing consumes flags at runtime in v1, so there's no key to
+authenticate, and a credential nobody uses is just attack surface.
 
-### 7.3 Evaluation
+### 8.2 `Flag`
 
-Evaluation lives on the entity, not only in a use-case. It's pure domain logic with no
+```
+Flag
+  id                 string
+  projectId          string
+  key                FlagKey            — immutable; customers hardcode it
+  description        string
+  enabled            boolean            — master kill switch, checked first
+  targetingRules     TargetingRule[]    — ordered; first match wins
+  rolloutPercentage  RolloutPercentage
+  defaultValue       boolean            — fallthrough when enabled and nothing matched
+  createdAt          Date
+  updatedAt          Date
+```
+
+`Flag.create()` ships dark: disabled, no rules, 0% rollout, `defaultValue` false unless specified.
+Creating a flag never exposes a feature until someone deliberately enables it. `key` is immutable
+(no setter) — it's the identifier customers hardcode, so a rename is delete-and-recreate.
+
+### 8.3 Evaluation
+
+`evaluate()` lives on the entity, not only in a use-case. It's pure domain logic with no
 orchestration and no I/O — it _is_ the business rule of a flag:
 
 ```typescript
@@ -400,205 +313,154 @@ evaluate(context: EvaluationContext): boolean {
 }
 ```
 
-`disable()` is a true kill switch: it short-circuits before any rule is consulted, so turning a
-flag off genuinely turns it off for everyone — including users named explicitly in a targeting
-rule. That's the headline product promise ("seconds, not an incident response") and it only holds
-because the check comes first.
+The disabled check comes first and that ordering is the contract: `disable()` is a true kill
+switch that overrides everything, including a targeting rule that names a user explicitly. That's
+the headline product promise ("seconds, not an incident response") and it only holds because
+nothing is consulted before that line.
 
-`EvaluateFlagUseCase` becomes a thin thing: load the flag, call `evaluate` — used by the
-dashboard's "test this rule" preview. The SDK, which already holds the flag in cache, calls
-`flag.evaluate(ctx)` directly with no use-case in the path.
+`EvaluationContext` is deliberately **not** called `UserContext`. FlagBase has a `User` entity —
+someone who logs into the dashboard. The subject of an evaluation is the _customer's_ end user, an
+entirely different person. `key` is required because percentage rollout can't bucket without a
+stable identifier; `attributes` exists for v2 attribute targeting and is unused in v1.
 
-### `EvaluationContext`
+### 8.4 `RolloutPercentage` and bucketing
 
-```typescript
-type EvaluationContext = {
-  key: string; // stable id of the subject
-  attributes?: Record<string, string | number | boolean>; // v2 attribute targeting
-};
-```
+`RolloutPercentage` is a value object validated 0–100 in its constructor. `includes(subjectKey,
+flagKey)` returns `bucketOf(subjectKey, flagKey) < value`, so 0 includes nobody and 100 everybody.
 
-**Deliberately not called `UserContext`.** FlagBase has a `User` entity — someone who logs into
-your dashboard. The subject of an evaluation is the _customer's_ end-user, an entirely unrelated
-person. Two things called `User` in one codebase, meaning different people, is a bug factory.
+`bucketing.ts` is pure FNV-1a over the UTF-8 bytes of `` `${flagKey}:${subjectKey}` ``, mapped into
+0–99. Two deliberate choices:
 
-`key` is required, because percentage rollout can't bucket without a stable identifier. For
-anonymous traffic the caller must supply something stable (a session id) — see §11.
-
-### 7.4 `RolloutPercentage` and bucketing
-
-```typescript
-class RolloutPercentage {
-  constructor(readonly value: number) {
-    // integer, 0..100 — throws otherwise
-  }
-  includes(subjectKey: string, flagKey: string): boolean {
-    return bucketOf(subjectKey, flagKey) < this.value; // 0 → never, 100 → always
-  }
-}
-```
-
-```typescript
-// core/flag/bucketing.ts — pure, no imports, ~20 lines (FNV-1a or murmur3)
-export function bucketOf(subjectKey: string, flagKey: string): number {
-  return hash(`${flagKey}:${subjectKey}`) % 100; // 0..99
-}
-```
-
-**Hashing `flagKey + subjectKey`, not `subjectKey` alone, is deliberate.** If the subject key were
-hashed by itself, the same user would land in the same bucket for _every_ flag — so a user unlucky
-enough to be in bucket 3 would be in the first 5% of every single rollout across the platform,
-forever. Salting with the flag key makes each flag's bucketing independent.
+- **UTF-8 bytes, not `charCodeAt`** — so a future non-JS SDK (Python, Go) buckets a non-ASCII
+  subject identically. For ASCII the two are the same; the difference only appears with non-ASCII
+  keys, at which point a mismatch would split a user across processes.
+- **Salted with the flag key** — hashing the subject alone would put a user in the same bucket for
+  every flag, so an unlucky user would be in the first 5% of every rollout on the platform.
 
 **This function freezes the moment the SDK ships.** Changing the hash re-buckets every user of
-every flag simultaneously — a silent, platform-wide, un-debuggable behavior change.
+every flag simultaneously — silent, platform-wide, undebuggable. There's a canary test recording
+known outputs; if it fails, the hash changed. It is _not_ frozen yet (no SDK consumes it), so if
+there's ever a reason to revisit the algorithm, now is the only free window.
 
-The one upside of deferring the SDK: it isn't frozen _yet_. No customer depends on this bucketing
-in v1, so the algorithm is still cheap to change. That window closes permanently with the first
-v2 SDK release — so if there's a reason to revisit the hash choice, revisit it now.
-
-### `TargetingRule`
+### 8.5 `TargetingRule`
 
 ```typescript
 interface TargetingRule {
-  readonly value: boolean; // what to return on a match
+  readonly value: boolean;
   matches(context: EvaluationContext): boolean;
 }
 
-class UserIdListRule implements TargetingRule {
-  // the only rule type in v1
-  constructor(
-    readonly userIds: string[],
-    readonly value: boolean,
-  ) {}
-  matches(context: EvaluationContext): boolean {
-    return this.userIds.includes(context.key);
-  }
-}
+class UserIdListRule implements TargetingRule { /* the only rule type in v1 */ }
 ```
 
-New rule types (attribute matching, in v2) implement this interface. They do **not** add branches
-to `evaluate()` — that's the OCP commitment from `BACKEND_ARCHITECTURE.md` §3.
-
-### `FlagKey`
-
-```typescript
-class FlagKey {
-  readonly value: string;
-  constructor(input: string) {
-    // lowercase alphanumeric + dashes, bounded length; throws otherwise
-  }
-}
-```
+New rule types (attribute matching, v2) implement this interface. They do **not** add branches to
+`evaluate()` — that's the OCP commitment. `UserIdListRule` holds its ids in a `Set` for O(1)
+membership and rejects an empty list (an empty rule could never match).
 
 ---
 
-## 8. Platform admin — [v2]
+## 9. Platform admin — [v2]
 
-> **Deferred with `apps/admin`** (`SYSTEM_DESIGN.md` §0). Not built in v1. Kept here because the
-> "separate actor" decision constrains `Role` _now_: it's what rules out bolting an
-> `isSuperAdmin` flag onto `User` in v1 — the shortcut that would be cheapest today and worst
-> later.
+> **Deferred with `apps/admin`** (`SYSTEM_DESIGN.md` §0). Not built. Recorded because the "separate
+> actor" decision constrains `Role` _now_: it's what rules out bolting an `isSuperAdmin` flag onto
+> `User` in v1 — the shortcut that's cheapest today and worst later.
 
-```typescript
-// core/platform-admin/
-class PlatformAdmin extends Entity {
-  readonly email: Email;
-  private _role: PlatformRole;
-  readonly createdAt: Date;
-}
-
-enum PlatformRole {
-  SuperAdmin = "super_admin",
-  Support = "support",
-}
-
-const PLATFORM_ROLE_PERMISSIONS: Record<PlatformRole, string[]> = {
-  [PlatformRole.SuperAdmin]: [
-    "org:list",
-    "org:read",
-    "project:read",
-    "flag:read",
-  ],
-  [PlatformRole.Support]: ["org:list", "org:read"],
-};
-```
-
-A completely separate actor from `User` — its authority isn't derived from membership in any
-tenant, it operates across all of them. Same shape as `Role`, entirely different vocabulary
-(cross-tenant operations, not tenant-scoped ones). See `BACKEND_ARCHITECTURE.md` §8.
+`PlatformAdmin` will be a completely separate actor from `User` — its authority isn't derived from
+membership in any tenant, it operates across all of them. Same shape as `Role`, entirely different
+vocabulary (`organization:list`, `organization:read` — cross-tenant, not tenant-scoped).
 
 ---
 
-## 9. Entity map
+## 10. Entity map
 
 ```
-User ──< OAuthAccount                       one user, many sign-in methods
- │
- └──< Member >── Org                        the join; carries Role
-                  │
-                  ├──< Invitation           by email; invitee may have no User yet
-                  │
-                  └──< Project              container for flags (SDK auth unit in v2)
-                        │
-                        └──< Flag
-                              ├── FlagKey            (vo, immutable)
-                              ├── RolloutPercentage  (vo)
-                              └──< TargetingRule     (ordered; first match wins)
+User ──< Member >── Organization           Member is the join; carries Role
+                     │
+                     ├──< Invitation        by email; invitee may have no User yet
+                     │
+                     └──< Project           container for flags (SDK auth unit in v2)
+                           │
+                           └──< Flag
+                                 ├── FlagKey            (vo, immutable)
+                                 ├── RolloutPercentage  (vo)
+                                 └──< TargetingRule     (ordered; first match wins)
 
 PlatformAdmin  [v2]                         separate actor; no tenant relationship
 ```
 
 ---
 
-## 10. Where each invariant lives
+## 11. Where each invariant lives
 
-| Invariant                                           | Enforced in                                              |
-| --------------------------------------------------- | -------------------------------------------------------- |
-| `RolloutPercentage` is an integer 0–100             | VO constructor                                           |
-| `FlagKey` format                                    | VO constructor                                           |
-| `Email` shape + normalization                       | VO constructor                                           |
-| Invitation not expired / still pending on accept    | `Invitation.accept(now)`                                 |
-| Flag disabled ⇒ evaluates false for everyone        | `Flag.evaluate()`                                        |
-| Email unique across users                           | use-case + **DB unique index**                           |
-| Flag key unique per project                         | use-case + **DB unique index**                           |
-| One membership per (org, user)                      | use-case + **DB unique index**                           |
-| One OAuth account per (provider, providerAccountId) | use-case + **DB unique index**                           |
-| An org has exactly one owner                        | use-cases: create-org, change-member-role, remove-member |
-| A user always has ≥1 way to sign in                 | use-case: unlink-oauth-account                           |
-| Link only into a verified account (§4.3)            | use-case: sign-in-with-oauth                             |
+| Invariant                                        | Enforced in                             |
+| ------------------------------------------------ | --------------------------------------- |
+| `RolloutPercentage` is an integer 0–100          | VO constructor                          |
+| `FlagKey` format                                 | VO constructor                          |
+| `Email` shape + normalization                    | VO constructor                          |
+| A user always has a (non-empty) password         | `User` constructor                      |
+| Invitation not expired / still pending on accept | `Invitation.accept(now)`                |
+| Cannot invite as Owner                           | `Invitation` constructor                |
+| Flag disabled ⇒ evaluates false for everyone     | `Flag.evaluate()`                       |
+| Email unique across users                        | use-case + **DB unique index**          |
+| Flag key unique per project                      | use-case + **DB unique index**          |
+| One membership per (organization, user)          | use-case + **DB unique index**          |
+| An organization has exactly one owner            | use-cases: create-org, change-member-role, remove-member |
 
 The pattern: **entity-local rules go in constructors and methods; cross-row rules go in use-cases
 and are backstopped by a database constraint.** The DB index isn't redundant — it's what holds
-when two requests race, which a use-case check alone cannot prevent.
+when two requests race, which a use-case check alone cannot prevent. Every unique index above is
+already built in `infrastructure` and translates a collision into a domain `ConflictError`.
+
+Note what removing OAuth deleted from this table: the "a user always has ≥1 way to sign in" rule
+collapsed into the plain constructor check above, because there's no longer a passwordless path.
 
 ---
 
-## 11. Open questions
+## 12. Conventions
 
-**Transactions are now v1-blocking, not deferred.** `CreateOrgUseCase` writes an `Org` _and_ its
-owner `Member` — an org with no owner is a corrupt state that violates §10. `AcceptInvitationUseCase`
+Established while building `core`; follow them for new entities.
+
+- **Static `create()` factory** for new instances (stamps `createdAt`, applies defaults); the
+  `constructor(props)` is the full-fidelity path the persistence mapper uses to rehydrate.
+- **Mutating methods take `now: Date`** (`flag.enable(now)`) rather than reading a clock — keeps
+  entities pure, with the `IClock` port living at the use-case layer.
+- **A schema comment block** at the top of each entity file lists its persisted field shape at a
+  glance.
+- **Value objects are immutable and compared by value** (`equals`); entities carry identity.
+
+---
+
+## 13. Open questions
+
+**Transactions are v1-blocking.** `CreateOrganizationUseCase` writes an `Organization` _and_ its
+owner `Member` — an org with no owner is a corrupt state that violates §11. `AcceptInvitationUseCase`
 writes a `Member` and updates the `Invitation`. Both are multi-document writes that must not
 half-succeed. Handing a Mongo session to a use-case without leaking Mongoose into `core` needs a
-Unit-of-Work-style port. This was listed as "not urgent for v1" in `BACKEND_ARCHITECTURE.md` §13 —
-team management landing in v1 changed that.
+Unit-of-Work-style port. This is the first thing to resolve when the use-case layer starts.
 
-**Email provider — the only true v1 blocker here.** `IEmailSender` needs an adapter (Resend,
-Postmark, SES — free tiers exist for all). Nothing works without it: email verification gates
-password signup, and invitations gate team management. Both are v1.
+**Error handling across the boundary.** `core` throws typed `DomainError`s (`ValidationError`,
+`NotFoundError`, `ConflictError`, `ForbiddenError`), each with a `code`. The route layer maps
+`code` → HTTP status. That mapping table doesn't exist yet — it's a delivery-layer concern for
+when routes are built.
+
+**Input validation placement.** Entities guard invariants, but something must reject a malformed
+JSON body before it reaches a constructor. Zod at the route boundary is the natural fit — but Zod
+can't live in `core`, so the schema and the entity invariant risk stating the same rule twice.
 
 **Anonymous evaluation.** `EvaluationContext.key` is required, so evaluating a flag for a
-logged-out visitor means supplying something stable (a session id). The alternative is an optional
-key that skips rollout and returns `defaultValue`. **Deferring the SDK de-risked this** — with no
-published API, it's no longer a breaking change to revisit. Decide before v2 ships.
+logged-out visitor means the caller supplies something stable (a session id). Deferring the SDK
+de-risked this — with no published API, it's no longer a breaking change to revisit. Decide before
+v2 ships.
 
-**Platform admin authentication [v2].** `PlatformAdmin` has no password or OAuth account modeled.
-Deferred with `apps/admin`; a manual DB seed plus a separate login is probably enough for a single
-operator.
+**Email provider.** `IEmailSender` needs an adapter (Resend, Postmark, SES) for invitations. Not
+built; blocks the invitation flow.
 
-**Invitation expiry window.** `expiresAt` exists; nothing decides whether that's 24 hours or 7
-days.
+---
 
-Still open from `BACKEND_ARCHITECTURE.md` §13 and unaffected by this document: error handling
-across the use-case boundary, input validation placement, and whether routes return entities or
-DTOs.
+## 14. Build status
+
+- `core` — entities, value objects, ports, repository interfaces: **built and unit-tested** (110
+  tests, zero-dependency). Ports declared, not implemented.
+- `infrastructure` — Mongoose models, mappers, and repository implementations for all six
+  entities: **built and integration-tested** against an in-process MongoDB (34 tests).
+- Not yet built: port implementations, the composition root, use-cases, and the apps.

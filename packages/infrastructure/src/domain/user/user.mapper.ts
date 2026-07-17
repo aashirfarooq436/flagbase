@@ -9,7 +9,6 @@ export class UserMapper {
       email: new Email(document.email),
       name: document.name,
       passwordHash: document.passwordHash,
-      emailVerifiedAt: document.emailVerifiedAt,
       createdAt: document.createdAt,
     });
   }
@@ -20,7 +19,6 @@ export class UserMapper {
       email: user.email.value,
       name: user.name,
       passwordHash: user.passwordHash,
-      emailVerifiedAt: user.emailVerifiedAt,
       createdAt: user.createdAt,
     };
   }

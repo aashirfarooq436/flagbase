@@ -59,13 +59,12 @@ export interface ITokenHasher {
 /**
  * Sends transactional email.
  *
- * The methods are semantic ("send a verification email") rather than generic ("send
- * this subject and body") on purpose: subject lines and templates are presentation,
- * and presentation does not belong in the domain. core decides *that* a verification
- * email must go out and supplies the token; infrastructure decides what it looks like.
+ * The methods are semantic ("send an invitation") rather than generic ("send this
+ * subject and body") on purpose: subject lines and templates are presentation, and
+ * presentation does not belong in the domain. core decides *that* an invitation email
+ * must go out and supplies the token; infrastructure decides what it looks like.
  */
 export interface IEmailSender {
-  sendEmailVerification(to: Email, token: string): Promise<void>;
   sendInvitation(
     to: Email,
     token: string,

@@ -1,11 +1,10 @@
 /**
  * User (persisted shape)
- *   id               string
- *   email            Email          — immutable in v1
- *   name             string
- *   passwordHash     string | null  — null for OAuth-only accounts
- *   emailVerifiedAt  Date | null
- *   createdAt        Date
+ *   id            string
+ *   email         Email   — immutable in v1; the login identifier
+ *   name          string  — display name
+ *   passwordHash  string  — every user authenticates with a password
+ *   createdAt     Date
  */
 
 import type { Email } from "../../shared/email.vo";
@@ -18,9 +17,8 @@ export type UserProps = {
   id: string;
   email: Email;
   name: string;
-  /** Opaque. Produced by IPasswordHasher; null for users who only ever used OAuth. */
-  passwordHash: string | null;
-  emailVerifiedAt: Date | null;
+  /** Opaque. Produced by IPasswordHasher outside core; never a plaintext password. */
+  passwordHash: string;
   createdAt: Date;
 };
 
@@ -34,41 +32,41 @@ export type UserProps = {
  * A User exists independently of any organization: signing up creates a User and
  * nothing else, so "signed up, no organization yet" is a real state the dashboard must
  * handle. Membership lives in Member, never as an organizationId here.
+ *
+ * v1 authenticates by email + password only. Every user therefore has a password hash;
+ * there is no passwordless account.
  */
 export class User extends Entity {
-  /** Immutable in v1. It's the account-linking key — changing it is a designed flow, not a setter. */
+  /** Immutable in v1 and the login identifier. Changing it would be a designed flow, not a setter. */
   readonly email: Email;
   readonly createdAt: Date;
 
   private _name: string;
-  private _passwordHash: string | null;
-  private _emailVerifiedAt: Date | null;
+  private _passwordHash: string;
 
   constructor(props: UserProps) {
     super(props.id);
 
     User.assertValidName(props.name);
+    User.assertValidPasswordHash(props.passwordHash);
 
     this.email = props.email;
     this.createdAt = props.createdAt;
     this._name = props.name;
     this._passwordHash = props.passwordHash;
-    this._emailVerifiedAt = props.emailVerifiedAt;
   }
 
   /**
-   * A brand-new user, unverified.
+   * A brand-new user.
    *
-   * `passwordHash` is supplied already hashed — core never hashes anything itself.
-   * Pass null when the account originates from OAuth, where the provider has already
-   * proven ownership of the address.
+   * `passwordHash` is supplied already hashed — core never hashes anything itself; that
+   * is IPasswordHasher's job, in the use-case that calls this.
    */
   static create(input: {
     id: string;
     email: Email;
     name: string;
-    passwordHash: string | null;
-    emailVerifiedAt: Date | null;
+    passwordHash: string;
     now: Date;
   }): User {
     return new User({
@@ -76,7 +74,6 @@ export class User extends Entity {
       email: input.email,
       name: input.name,
       passwordHash: input.passwordHash,
-      emailVerifiedAt: input.emailVerifiedAt,
       createdAt: input.now,
     });
   }
@@ -85,54 +82,14 @@ export class User extends Entity {
     return this._name;
   }
 
-  get passwordHash(): string | null {
+  get passwordHash(): string {
     return this._passwordHash;
   }
 
-  get emailVerifiedAt(): Date | null {
-    return this._emailVerifiedAt;
-  }
-
-  /**
-   * Whether this account's owner has proven they control the address.
-   *
-   * Load-bearing for security, not a UI nicety: linking an OAuth identity into an
-   * *unverified* account is the pre-registration attack (docs/DOMAIN_MODEL.md §4.3).
-   * An attacker signs up with a victim's address, the victim later signs in with
-   * Google, the accounts merge, and the attacker's password now opens the victim's
-   * account. Verification is what makes merging on email safe.
-   */
-  get isEmailVerified(): boolean {
-    return this._emailVerifiedAt !== null;
-  }
-
-  get hasPassword(): boolean {
-    return this._passwordHash !== null;
-  }
-
-  /** Idempotent — a verification link clicked twice keeps the original timestamp. */
-  verifyEmail(now: Date): void {
-    if (this._emailVerifiedAt === null) {
-      this._emailVerifiedAt = now;
-    }
-  }
-
-  /** Takes an already-hashed value. Hashing is IPasswordHasher's job, outside core. */
+  /** Replace the password (reset / change). Takes an already-hashed value. */
   setPassword(passwordHash: string): void {
-    if (passwordHash.length === 0) {
-      throw new ValidationError("Password hash must not be empty");
-    }
+    User.assertValidPasswordHash(passwordHash);
     this._passwordHash = passwordHash;
-  }
-
-  /**
-   * Drop the password, leaving OAuth as the only way in.
-   *
-   * The caller must confirm at least one OAuth account remains — an entity can't see
-   * other rows, so it can't enforce that itself. See docs/DOMAIN_MODEL.md §10.
-   */
-  removePassword(): void {
-    this._passwordHash = null;
   }
 
   changeName(name: string): void {
@@ -151,6 +108,12 @@ export class User extends Entity {
       throw new ValidationError(
         `Name must be at most ${MAX_NAME_LENGTH} characters, received ${trimmed.length}`,
       );
+    }
+  }
+
+  private static assertValidPasswordHash(passwordHash: string): void {
+    if (passwordHash.length === 0) {
+      throw new ValidationError("Password hash must not be empty");
     }
   }
 }

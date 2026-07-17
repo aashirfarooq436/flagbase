@@ -21,11 +21,7 @@ export type {
 // User
 export { User } from "./domain/user/user.entity";
 export type { UserProps } from "./domain/user/user.entity";
-export { OAuthAccount } from "./domain/user/oauth-account.entity";
-export type { OAuthAccountProps } from "./domain/user/oauth-account.entity";
-export { OAuthProvider } from "./domain/user/oauth-provider.vo";
 export type { IUserRepository } from "./domain/user/user.repository";
-export type { IOAuthAccountRepository } from "./domain/user/oauth-account.repository";
 
 // Organization
 export { Organization } from "./domain/organization/organization.entity";

@@ -1,5 +1,18 @@
 # Project Brief
 
+> **Status — historical origin document (as of 2026-07-17).** This captures the _original_
+> thinking and business rationale, which still hold. Several specifics have since been superseded;
+> where this doc and the others disagree, the others win:
+>
+> - **v1 scope narrowed.** v1 is control-plane only (backend + dashboard) and is a _learning
+>   milestone, not a release_. The npm SDK, the platform-admin app, and multi-environment/
+>   multivariate/audit are all **v2**. (This brief's §4.1 still calls the SDK first-class-in-v1 —
+>   no longer true.) See `SYSTEM_DESIGN.md` §0.
+> - **Auth simplified.** Email + password only. No Google/OAuth, no email verification.
+> - **Naming.** The tenant entity is `Organization` (not `Org`).
+> - **Live docs:** `SYSTEM_DESIGN.md` (full-stack + monorepo), `BACKEND_ARCHITECTURE.md` (backend
+>   layers/rules), `DOMAIN_MODEL.md` (entities, invariants). Those reflect the built code.
+
 ## 1. Purpose of this document
 
 This is a context-transfer document for a solo side project. Paste this into a new Claude

@@ -5,10 +5,6 @@ export { UserModel } from "./domain/user/user.model";
 export type { UserDocument } from "./domain/user/user.model";
 export { UserMapper } from "./domain/user/user.mapper";
 export { MongoUserRepository } from "./domain/user/mongo-user.repository";
-export { OAuthAccountModel } from "./domain/user/oauth-account.model";
-export type { OAuthAccountDocument } from "./domain/user/oauth-account.model";
-export { OAuthAccountMapper } from "./domain/user/oauth-account.mapper";
-export { MongoOAuthAccountRepository } from "./domain/user/mongo-oauth-account.repository";
 
 // Organization
 export { OrganizationModel } from "./domain/organization/organization.model";

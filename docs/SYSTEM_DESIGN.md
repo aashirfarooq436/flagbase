@@ -94,49 +94,25 @@ Everything here is a class. No imports from outside `core/`, ever — including 
 genuinely belong to a single concept), a separate use-case namespace organized by action (things
 that orchestrate across concepts). A use-case is never nested inside an entity's folder, even
 when it mostly concerns one entity, because some use-cases (`InviteMemberUseCase`) legitimately
-need `Org`, `Member`, and `User` all at once — there's no non-arbitrary "owner" to pick, so the
-folder structure shouldn't force one.
+need `Organization`, `Member`, and `User` all at once — there's no non-arbitrary "owner" to pick.
 
 ```
-core/
-├── org/
-│   ├── org.entity.ts              class Org { id, name, ownerId, createdAt }
-│   └── org.repository.ts          interface IOrgRepository { findById, save, ... }
-├── project/
-│   ├── project.entity.ts          class Project { id, orgId, name, apiKeyHash }
-│   └── project.repository.ts
-├── flag/
-│   ├── flag.entity.ts             class Flag { id, projectId, key, description,
-│   │                                            defaultValue: boolean, targetingRules: TargetingRule[],
-│   │                                            rolloutPercentage: RolloutPercentage }
-│   ├── flag.repository.ts
-│   ├── rollout-percentage.vo.ts   class RolloutPercentage { constructor(value: number) validates 0-100 }
-│   └── flag-key.vo.ts             class FlagKey { constructor(value: string) validates format }
-├── member/
-│   ├── member.entity.ts           class Member { id, orgId, userId, role: Role }
-│   ├── member.repository.ts
-│   └── role.vo.ts                 enum Role { Owner, Admin, Member } + permission table (§2.3)
-├── user/
-│   ├── user.entity.ts             class User { id, email, name }
-│   └── user.repository.ts
-└── use-cases/                     — organized by ACTION, one folder per use-case, not by entity
-    ├── use-case.ts                interface IUseCase<TInput, TOutput> { execute(input): Promise<TOutput> }
-    ├── create-flag/
-    │   └── create-flag.use-case.ts
-    ├── update-flag-rules/
-    │   └── update-flag-rules.use-case.ts
-    ├── toggle-flag/
-    │   └── toggle-flag.use-case.ts
-    ├── evaluate-flag/
-    │   └── evaluate-flag.use-case.ts     — the core hard problem (brief §5.2); pure, no I/O
-    ├── create-org/
-    │   └── create-org.use-case.ts
-    ├── invite-member/
-    │   └── invite-member.use-case.ts     — imports Org, Member, and User repos/entities;
-    │                                        no single one of them "owns" this folder
-    └── change-member-role/
-        └── change-member-role.use-case.ts
+core/src/
+├── shared/                        — kernel: Entity base, Email, errors, ports
+├── domain/
+│   ├── user/                      User { id, email, name, passwordHash }
+│   ├── organization/              Organization { id, name }  — no ownerId
+│   ├── member/                    Member { id, organizationId, userId, role }, Role
+│   ├── invitation/               Invitation + InvitationStatus
+│   ├── project/                   Project { id, organizationId, name }
+│   └── flag/                      Flag, FlagKey, RolloutPercentage, TargetingRule, bucketing
+└── use-cases/                     — [not built yet] by ACTION, one folder each
 ```
+
+> **`DOMAIN_MODEL.md` is the authority** for entity fields, invariants, and value objects. This
+> is a locator only — auth is email + password (no OAuth); `invitation/` is its own feature
+> folder. The `core`/`infrastructure` layers are built and tested; `use-cases/` and the apps
+> are not.
 
 **SOLID in practice here:**
 
@@ -146,36 +122,27 @@ core/
   branches to `EvaluateFlagUseCase`.
 - **LSP** — any `IFlagRepository` implementation (Mongo now, Postgres later) must be swappable
   without changing use-case behavior.
-- **ISP** — narrow repository interfaces (`IFlagRepository` doesn't force `IOrgRepository`'s
+- **ISP** — narrow repository interfaces (`IFlagRepository` doesn't force `IOrganizationRepository`'s
   methods onto an implementer).
 - **DIP** — use-cases depend on repository _interfaces_, constructed and injected from outside
   (the composition root, §4), never instantiating a concrete repo themselves.
 
 ### 2.3 Role/Permission — where the CASL boundary sits
 
-`core/member/role.vo.ts` defines what roles _mean_, as plain data — no CASL import:
+`core/domain/member/role.vo.ts` defines what roles _mean_, as plain data — no CASL import:
 
 ```typescript
-enum Role {
-  Owner = "owner",
-  Admin = "admin",
-  Member = "member",
-}
+enum Role { Owner = "owner", Admin = "admin", Member = "member" }
 
-const ROLE_PERMISSIONS: Record<Role, string[]> = {
-  [Role.Owner]: [
-    "org:manage",
-    "project:manage",
-    "flag:manage",
-    "member:manage",
-  ],
-  [Role.Admin]: ["project:manage", "flag:manage", "member:read"],
+const ROLE_PERMISSIONS: Record<Role, Permission[]> = {
+  [Role.Owner]:  ["organization:manage", "project:manage", "flag:manage", "member:manage"],
+  [Role.Admin]:  ["project:manage", "flag:manage", "member:read"],
   [Role.Member]: ["project:read", "flag:read"],
 };
 ```
 
 `lib/casl/build-ability.ts` reads `ROLE_PERMISSIONS` and translates it into a real CASL
-`AppAbility` for a given user + org. This is the only place `@casl/ability` gets imported —
+`AppAbility` for a given user + organization. This is the only place `@casl/ability` gets imported —
 `core/` stays ignorant that CASL exists.
 
 ---
@@ -187,30 +154,21 @@ needed) — given `core/flag/flag.repository.ts` declares the interface, the imp
 exactly where you'd look for it:
 
 ```
-infrastructure/
-├── org/
-│   ├── org.model.ts                Mongoose schema
-│   ├── org.mapper.ts                OrgMapper.toDomain(doc): Org / .toDocument(entity)
-│   └── mongo-org.repository.ts     class MongoOrgRepository implements IOrgRepository
-├── project/
-│   ├── project.model.ts
-│   ├── project.mapper.ts
-│   └── mongo-project.repository.ts
-├── flag/
-│   ├── flag.model.ts
-│   ├── flag.mapper.ts               any denormalized fields (e.g. org name copied onto a
-│   │                                 Member doc for read perf) are handled ONLY here — core
-│   │                                 never sees them.
-│   └── mongo-flag.repository.ts
-├── member/
-│   ├── member.model.ts
-│   ├── member.mapper.ts
-│   └── mongo-member.repository.ts
-└── user/
-    ├── user.model.ts
-    ├── user.mapper.ts
-    └── mongo-user.repository.ts
+infrastructure/src/
+├── mongoose/connection.ts          ensureConnection(uri) — cached, serverless-safe
+├── shared/mongo-errors.ts          maps Mongo code 11000 → domain ConflictError
+├── test-support/mongo-test-env.ts  in-process MongoDB for integration tests
+└── domain/                         mirrors core/domain 1:1 — per feature:
+    <feature>/
+      <feature>.model.ts            Mongoose schema (domain UUID stored as _id)
+      <feature>.mapper.ts           document ↔ entity translation
+      mongo-<feature>.repository.ts implements core's I<Feature>Repository
 ```
+
+> **`BACKEND_ARCHITECTURE.md` §4 is the authority** here. All six repositories are built and
+> integration-tested (`mongodb-memory-server`). Any denormalized fields (e.g. an organization
+> name copied onto a `Member` document for read speed) live ONLY in the mapper — `core` never
+> sees them.
 
 Future external-system adapters (email, webhooks, cloud storage) join this package the same
 way: a concrete class implementing an interface `core/` declared, translating to/from whatever
@@ -231,23 +189,22 @@ repositories, and duplicating this per app would leave two places that could dri
 later means touching every route.
 
 ```typescript
-// packages/composition/composition-root.ts
+// packages/composition/composition-root.ts  — [not built yet]
 class CompositionRoot {
-  private orgRepository = new MongoOrgRepository();
+  private organizationRepository = new MongoOrganizationRepository();
   private flagRepository = new MongoFlagRepository();
   // ...
 
   // customer-facing use-cases
   createFlagUseCase = new CreateFlagUseCase(
     this.flagRepository,
-    this.orgRepository,
+    this.organizationRepository,
   );
   toggleFlagUseCase = new ToggleFlagUseCase(this.flagRepository);
-  evaluateFlagUseCase = new EvaluateFlagUseCase(this.flagRepository);
+  evaluateFlagUseCase = new EvaluateFlagUseCase();
 
-  // [v2] platform-admin-facing use-cases (§9) — same repos, different application rules
-  // listOrgsUseCase = new ListOrgsUseCase(this.orgRepository);
-  // getOrgDetailsUseCase = new GetOrgDetailsUseCase(this.orgRepository, this.projectRepository);
+  // [v2] platform-admin use-cases (§9) — same repos, different application rules
+  // listOrganizationsUseCase = new ListOrganizationsUseCase(this.organizationRepository);
 }
 
 export const composition = new CompositionRoot();
@@ -425,23 +382,23 @@ calls `EvaluateFlagUseCase` locally, no network round-trip per evaluation.
 
 A second, separate deliverable alongside the customer dashboard: `apps/admin`, used by Aashir
 (and, later, support staff) to operate the platform itself — not a tenant's account. This is
-**not** modeled as a special case of `Org`/`Member`/`Role` (§2), because a platform admin's
-authority isn't derived from membership in any tenant; it operates _across_ tenants. Bolting it
-onto the existing role system would mean either a fake `Org` membership for the admin, or leaky
-`if (user.isSuperAdmin)` checks scattered through tenant-scoped logic — the same anti-pattern
-the brief already flagged (§6.5.1) for persistence-layer leakage, just at the auth layer instead.
+**not** modeled as a special case of `Organization`/`Member`/`Role` (§2), because a platform
+admin's authority isn't derived from membership in any tenant; it operates _across_ tenants.
+Bolting it onto the existing role system would mean either a fake `Organization` membership for the
+admin, or leaky `if (user.isSuperAdmin)` checks scattered through tenant-scoped logic — the same
+anti-pattern the brief flagged for persistence-layer leakage, at the auth layer instead.
 
-### 9.1 Domain: a new `core/platform-admin/` feature folder
+### 9.1 Domain: a new `core/domain/platform-admin/` feature folder
 
 ```
-core/platform-admin/
+core/domain/platform-admin/
 ├── platform-admin.entity.ts     class PlatformAdmin { id, email, role: PlatformRole }
 ├── platform-admin.repository.ts interface IPlatformAdminRepository
 └── platform-role.vo.ts          enum PlatformRole { SuperAdmin, Support } + permission table,
-                                   same shape as core/member/role.vo.ts (§2.3) but a completely
+                                   same shape as core/domain/member/role.vo.ts but a completely
                                    separate vocabulary — PlatformRole permissions are about
-                                   cross-tenant platform operations (`org:list`, `org:read`,
-                                   later `org:suspend`), not anything scoped to one tenant.
+                                   cross-tenant platform operations (`organization:list`,
+                                   `organization:read`, later `organization:suspend`).
 ```
 
 `Support` is included now even though v1 admin is a single operator (you), per the "plan for a
@@ -452,17 +409,16 @@ is a data change, not a redesign.
 
 ```
 use-cases/
-├── list-orgs/                  ListOrgsUseCase — unscoped, unlike anything in the dashboard
-├── get-org-details/            GetOrgDetailsUseCase — org + its projects
+├── list-organizations/         ListOrganizationsUseCase — unscoped, unlike the dashboard
+├── get-organization-details/   GetOrganizationDetailsUseCase — organization + its projects
 └── list-project-flags/         ListProjectFlagsUseCase — read-only flag visibility for support
 ```
 
-These reuse the exact same `IOrgRepository`/`IProjectRepository`/`IFlagRepository` interfaces
-the dashboard's use-cases use — no new repository interfaces needed for v1's read-only scope.
-This is a third proof point for `core/`'s decoupling (after the dashboard and the SDK, brief
-§5.2): a third consumer, with a third set of application rules, over the same domain model.
-Mutating admin actions (e.g. `SuspendOrgUseCase`) are deferred until the scope actually expands
-past read-only — adding them later is a new use-case class, not a change to existing ones.
+These reuse the exact same `IOrganizationRepository`/`IProjectRepository`/`IFlagRepository`
+interfaces the dashboard's use-cases use — no new repository interfaces needed for the read-only
+scope. This is a third proof point for `core/`'s decoupling (after the dashboard and the SDK): a
+third consumer, with a third set of application rules, over the same domain model. Mutating admin
+actions (e.g. `SuspendOrganizationUseCase`) are deferred until the scope expands past read-only.
 
 ### 9.3 Infrastructure
 
@@ -490,7 +446,9 @@ one accidental route away from customer-facing surface area.
   `member:invite` distinct from `member:manage`?).
 - Edge-runtime SDK caching strategy — deferred until the edge target is actually being built.
 - Project API-key format and where it's validated (separate from user-session `withAuth`).
-- How `PlatformAdmin` accounts get created/authenticated in v1 — manual DB seed vs. a minimal
+- **[v2]** How `PlatformAdmin` accounts get created/authenticated — manual DB seed vs. a minimal
   invite flow; not urgent while it's a single operator.
-- Whether/when admin mutation (`org:suspend` etc.) gets added, and what audit-trail expectations
-  come with it once it does.
+- **[v2]** Whether/when admin mutation (`organization:suspend` etc.) gets added, and what
+  audit-trail expectations come with it.
+- **v1-blocking:** multi-document transactions (a Unit-of-Work port) — `CreateOrganizationUseCase`
+  and `AcceptInvitationUseCase` each write two documents that must not half-succeed.

@@ -98,48 +98,39 @@ Everything here is a class. Two organizing principles, deliberately not one:
 - **Feature folders** for things owned by a single concept — an entity, its value objects, its
   repository interface.
 - **A separate use-case namespace, organized by action** — because use-cases orchestrate _across_
-  concepts. `InviteMemberUseCase` touches `Org`, `Member`, and `User` equally; there's no
+  concepts. `InviteMemberUseCase` touches `Organization`, `Member`, and `User` equally; there's no
   non-arbitrary owner, so the folder structure must not force one.
 
+The top level splits three ways: `shared/` (the kernel — base class, cross-cutting value object,
+errors, ports), `domain/` (feature folders), and `use-cases/` (by action). `shared/` and
+`use-cases/` are honest peers of `domain/`, not features masquerading as siblings.
+
 ```
-core/
-├── org/
-│   ├── org.entity.ts              class Org { id, name, ownerId, createdAt }
-│   └── org.repository.ts          interface IOrgRepository { findById, save, ... }
-├── project/
-│   ├── project.entity.ts          class Project { id, orgId, name, apiKeyHash }
-│   └── project.repository.ts
-├── flag/
-│   ├── flag.entity.ts             class Flag { id, projectId, key, description,
-│   │                                            defaultValue, targetingRules[], rolloutPercentage }
-│   ├── flag.repository.ts
-│   ├── rollout-percentage.vo.ts   validates 0–100
-│   ├── flag-key.vo.ts             validates key format
-│   └── targeting-rule.ts          TargetingRule contract + implementations
-├── member/
-│   ├── member.entity.ts           class Member { id, orgId, userId, role: Role }
-│   ├── member.repository.ts
-│   └── role.vo.ts                 enum Role + ROLE_PERMISSIONS table (§7)
-├── user/
-│   ├── user.entity.ts
-│   └── user.repository.ts
-├── platform-admin/               — platform operators; NOT a tenant concept (§8)
-│   ├── platform-admin.entity.ts   class PlatformAdmin { id, email, role: PlatformRole }
-│   ├── platform-admin.repository.ts
-│   └── platform-role.vo.ts        enum PlatformRole { SuperAdmin, Support } + permissions
-└── use-cases/                    — by ACTION, one folder each, never nested under an entity
-    ├── use-case.ts                interface IUseCase<TInput, TOutput> { execute(input) }
-    ├── create-flag/
-    ├── update-flag-rules/
-    ├── toggle-flag/
-    ├── evaluate-flag/             the core hard problem — pure, zero I/O
-    ├── create-org/
-    ├── invite-member/             imports Org + Member + User; no single owner
-    ├── change-member-role/
-    ├── list-orgs/                 admin-facing, unscoped
-    ├── get-org-details/
-    └── list-project-flags/
+core/src/
+├── shared/                       — the kernel; imports nothing
+│   ├── entity.ts                 abstract Entity base (identity + equals)
+│   ├── email.vo.ts               class Email — login identifier, normalized
+│   ├── errors.ts                 DomainError + Validation/NotFound/Conflict/Forbidden
+│   └── ports.ts                  IIdGenerator, IClock, ITokenGenerator,
+│                                 IPasswordHasher, ITokenHasher, IEmailSender
+├── domain/
+│   ├── user/                     User { id, email, name, passwordHash }, IUserRepository
+│   ├── organization/             Organization { id, name }  — NO ownerId
+│   ├── member/                   Member { id, organizationId, userId, role }, Role
+│   ├── invitation/               Invitation + InvitationStatus, IInvitationRepository
+│   ├── project/                  Project { id, organizationId, name }
+│   └── flag/                     Flag, FlagKey, RolloutPercentage, TargetingRule,
+│                                 bucketing, EvaluationContext, IFlagRepository
+└── use-cases/                    — [NOT BUILT YET] by ACTION, one folder each
+    ├── use-case.ts               interface IUseCase<TInput, TOutput> { execute(input) }
+    ├── sign-up/  create-organization/  invite-member/  accept-invitation/
+    ├── change-member-role/  remove-member/  create-project/
+    ├── create-flag/  toggle-flag/  update-flag-rules/  evaluate-flag/
+    └── list-organizations/  [v2, admin]   get-organization-details/  [v2, admin]
 ```
+
+Auth is email + password only — there is no `OAuthAccount` (removed 2026-07-17). `PlatformAdmin`
+and its use-cases are **[v2]** (§8), deferred with the admin app.
 
 ### Rules for `core`
 
@@ -181,22 +172,30 @@ forever — otherwise a user flickers in and out of a feature on page refresh.
 
 ## 4. `packages/infrastructure`
 
-Mirrors `core`'s feature folders 1:1. No use-case mirror — infrastructure has no use-cases.
+Mirrors `core`'s `domain/` feature folders 1:1. No use-case mirror — infrastructure has no
+use-cases. **Built and integration-tested** against an in-process MongoDB (`mongodb-memory-server`).
 
 ```
-infrastructure/
+infrastructure/src/
 ├── mongoose/
-│   └── connection.ts              ensureMongooseConnection() — used by withDb
-├── org/
-│   ├── org.model.ts               Mongoose schema
-│   ├── org.mapper.ts              OrgMapper.toDomain(doc) / .toDocument(entity)
-│   └── mongo-org.repository.ts    class MongoOrgRepository implements IOrgRepository
-├── project/     … same three files
-├── flag/        … same three files
-├── member/      … same three files
-├── user/        … same three files
-└── platform-admin/ … same three files
+│   └── connection.ts               ensureConnection(uri) — cached, serverless-safe; used by withDb
+├── shared/
+│   └── mongo-errors.ts             isDuplicateKeyError() — maps code 11000 → ConflictError
+├── test-support/
+│   └── mongo-test-env.ts           useMongoTestEnv() — spins up an in-process Mongo per test file
+└── domain/
+    ├── user/                       user.model, user.mapper, mongo-user.repository
+    ├── organization/               … model, mapper, mongo-*.repository
+    ├── member/                     … (+ unique index on organizationId+userId)
+    ├── invitation/                 … (+ unique index on tokenHash)
+    ├── project/
+    └── flag/                       … (+ unique index on projectId+key; discriminated rule docs)
 ```
+
+The domain-generated UUID is stored as the document `_id` (a `String`), not a Mongo `ObjectId` —
+so the id a use-case mints is the id in the database, and `core` never learns Mongo exists. Port
+implementations (argon2 hasher, SHA-256 token hasher, id generator, clock, email adapter) are
+**not built yet** — they land with the use-case layer that needs them.
 
 **Must:** implement interfaces `core` declared. Own every Mongoose schema. Own all translation
 between persistence shape and domain shape, in mappers.
@@ -206,9 +205,9 @@ storing or retrieving it, that decision belongs in a use-case.
 
 ### Denormalization stops here
 
-Mongo documents may duplicate fields for read performance — copying `orgName` onto every `Member`
-document to avoid a populate is a legitimate persistence decision. It must never reach the domain.
-`MemberMapper` drops it on the way in and rebuilds it on the way out; `Member` the entity has no
+Mongo documents may duplicate fields for read performance — copying `organizationName` onto every
+`Member` document to avoid a populate is a legitimate persistence decision. It must never reach the
+domain. `MemberMapper` drops it on the way in and rebuilds it on the way out; `Member` the entity has no
 idea it exists. Persistence-layer denormalization is fine; domain-layer denormalization is not.
 
 ### Relationships are entities, not embedded arrays
@@ -232,25 +231,20 @@ than forcing it somewhere unrelated.
 The only place in the system where concrete classes get constructed.
 
 ```typescript
+// [NOT BUILT YET] — illustrative shape; use-cases and the composition package don't exist.
 class CompositionRoot {
-  private orgRepository = new MongoOrgRepository();
+  private organizationRepository = new MongoOrganizationRepository();
   private flagRepository = new MongoFlagRepository();
-  private platformAdminRepository = new MongoPlatformAdminRepository();
 
-  // customer-facing
   createFlagUseCase = new CreateFlagUseCase(
     this.flagRepository,
-    this.orgRepository,
+    this.organizationRepository,
   );
   toggleFlagUseCase = new ToggleFlagUseCase(this.flagRepository);
   evaluateFlagUseCase = new EvaluateFlagUseCase();
 
-  // platform-admin-facing — same repositories, different application rules
-  listOrgsUseCase = new ListOrgsUseCase(this.orgRepository);
-  getOrgDetailsUseCase = new GetOrgDetailsUseCase(
-    this.orgRepository,
-    this.projectRepository,
-  );
+  // [v2] platform-admin use-cases wire to the SAME repositories, different application rules:
+  // listOrganizationsUseCase = new ListOrganizationsUseCase(this.organizationRepository);
 }
 
 export const composition = new CompositionRoot();
@@ -276,10 +270,10 @@ compose through higher-order functions rather than TypeScript class decorators. 
 layers wrapped around a core action — using the mechanism the framework actually supports.
 
 ```typescript
-// with-db.ts — ensure a Mongoose connection exists
+// with-db.ts — ensure a Mongoose connection exists (URI comes from the app's env)
 function withDb(handler: RouteHandler): RouteHandler {
   return async (req, ctx) => {
-    await ensureMongooseConnection();
+    await ensureConnection(env.MONGODB_URI);
     return handler(req, ctx);
   };
 }
@@ -298,7 +292,7 @@ function withAuth(handler: RouteHandler): RouteHandler {
 function withAbility(action: string, subject: string) {
   return (handler: RouteHandler): RouteHandler =>
     async (req, ctx) => {
-      const ability = buildAbilityFor(ctx.user, ctx.org);
+      const ability = buildAbilityFor(ctx.user, ctx.organization);
       if (ability.cannot(action, subject)) {
         return NextResponse.json({ error: "Forbidden" }, { status: 403 });
       }
@@ -342,7 +336,7 @@ cannot reach**, because the SDK never runs inside Next.js.
 ### The SDK rules endpoint — [v2]
 
 > **Deferred.** No SDK in v1, so nothing calls this and `Project` carries no API key yet
-> (`DOMAIN_MODEL.md` §7.1).
+> (`DOMAIN_MODEL.md` §8.1).
 
 `GET /api/sdk/projects/:id/rules` is backend surface but does **not** use `withAppHandlers`. It
 authenticates a **project API key**, not a user session — there is no logged-in user, so
@@ -356,16 +350,16 @@ check) and scopes its response to exactly the one project the key belongs to.
 `core` defines what roles _mean_, as plain data, with no CASL import:
 
 ```typescript
-// core/member/role.vo.ts
+// core/domain/member/role.vo.ts
 enum Role {
   Owner = "owner",
   Admin = "admin",
   Member = "member",
 }
 
-const ROLE_PERMISSIONS: Record<Role, string[]> = {
+const ROLE_PERMISSIONS: Record<Role, Permission[]> = {
   [Role.Owner]: [
-    "org:manage",
+    "organization:manage",
     "project:manage",
     "flag:manage",
     "member:manage",
@@ -375,7 +369,7 @@ const ROLE_PERMISSIONS: Record<Role, string[]> = {
 };
 ```
 
-`apps/*/lib/casl/build-ability.ts` reads that table and translates it into a real CASL `Ability`.
+The delivery layer's `lib/casl/build-ability.ts` reads that table and translates it into a real CASL `Ability`.
 That file is the only place `@casl/ability` is imported anywhere in the system. `core` stays
 ignorant that CASL exists, which is what allows the SDK — which has no use for CASL — to depend on
 `core` without dragging it along.
@@ -389,19 +383,19 @@ ignorant that CASL exists, which is what allows the SDK — which has no use for
 > shortcut it rules out (`if (user.isSuperAdmin)`) is one you'd otherwise take in v1 and regret.
 
 `PlatformAdmin` is not a `Member` with extra powers. Its authority isn't derived from membership
-in any tenant — it operates _across_ tenants. Modeling it inside the `Org`/`Member`/`Role` system
-would mean either a fake org membership or `if (user.isSuperAdmin)` checks leaking through
-tenant-scoped logic.
+in any tenant — it operates _across_ tenants. Modeling it inside the `Organization`/`Member`/`Role`
+system would mean either a fake organization membership or `if (user.isSuperAdmin)` checks leaking
+through tenant-scoped logic.
 
 So it gets its own entity, its own `PlatformRole` vocabulary (about cross-tenant operations:
-`org:list`, `org:read`, later `org:suspend`), its own repository, and its own auth chain in
-`apps/admin` (`withAdminAuth` + `withAdminAbility`) — a completely separate login, unreachable
-from the customer surface.
+`organization:list`, `organization:read`, later `organization:suspend`), its own repository, and
+its own auth chain in `apps/admin` (`withAdminAuth` + `withAdminAbility`) — a completely separate
+login, unreachable from the customer surface.
 
 What it _shares_ is the repositories. v1 admin use-cases are read-only and reuse
-`IOrgRepository`/`IProjectRepository`/`IFlagRepository` unchanged. That's a third consumer of the
-same domain model with a third set of application rules — another proof that `core` is genuinely
-decoupled rather than nominally so.
+`IOrganizationRepository`/`IProjectRepository`/`IFlagRepository` unchanged. That's a third consumer
+of the same domain model with a third set of application rules — another proof that `core` is
+genuinely decoupled rather than nominally so.
 
 ---
 
@@ -497,19 +491,22 @@ Steps 1–4 involve zero frameworks and hold all the actual thinking. If most of
 
 ## 13. Open structural questions
 
-Genuinely undecided, not oversights. Several will bite on the first real use-case, so they're
-better settled deliberately than discovered by accident.
+**Resolved so far:**
 
-**ID generation.** Who mints a `Flag`'s id? If it's Mongo's `ObjectId`, then either `core` knows
-about ObjectIds (a leak), or entities are constructed id-less and receive one on save (awkward —
-the use-case can't return the id it just created without a round trip). The usual clean answer is
-a domain-generated UUID that Mongo stores as `_id`. Needs deciding before `CreateFlagUseCase`.
+- **ID generation — DECIDED.** Entities carry a domain-generated string `id` from the
+  `IIdGenerator` port (`crypto.randomUUID` in infrastructure), and Mongo stores it as the document
+  `_id`. No `ObjectId` anywhere; `core` never learns Mongo exists.
+- **Error handling — DECIDED (mapping pending).** `core` throws typed `DomainError`s
+  (`ValidationError` / `NotFoundError` / `ConflictError` / `ForbiddenError`), each with a `code`.
+  What's left is the delivery-layer table that maps `code` → HTTP status — built when routes are.
 
-**Error handling across the boundary.** When `ToggleFlagUseCase` can't find the flag, what
-happens? A raw `Error` leaves the route unable to tell 404 from 500 without string-matching.
-Options: typed domain errors in `core` that routes map to status codes, or a `Result` return type.
-Either works. Choosing neither means every route accumulates `try/catch` guesswork. Needed before
-the second route exists.
+**Still open:**
+
+**Transactions — now v1-blocking.** Team management landing in v1 changed this from "not urgent."
+`CreateOrganizationUseCase` writes an `Organization` _and_ its owner `Member`; `AcceptInvitationUseCase`
+writes a `Member` and updates the `Invitation`. Both are multi-document writes that must not
+half-succeed. Handing a Mongo session to a use-case without leaking Mongoose into `core` needs a
+Unit-of-Work-style port. This is the first thing to resolve when the use-case layer starts.
 
 **Input validation placement.** Entities guard invariants, but something must reject a malformed
 JSON body before it reaches a constructor. Zod at the route boundary is the natural fit — but Zod
@@ -518,10 +515,5 @@ Worth deciding how much duplication is acceptable.
 
 **Entities or DTOs on the wire?** The §6 example shows a `FlagPresenter`, but this is not yet
 settled. Serializing entities directly couples the public API to the domain model — renaming an
-entity field silently breaks customers and the SDK. Recommend routes map entity → DTO from
-`packages/contracts`, but it needs an explicit decision.
-
-**Transactions.** `InviteMemberUseCase` may write more than one document. Mongo supports
-multi-document transactions, but handing a session to a use-case without leaking Mongoose into
-`core` needs a Unit-of-Work-style port. Not urgent for v1; becomes urgent the first time a
-use-case writes twice and half-fails.
+entity field silently breaks the dashboard (and, in v2, the SDK). Recommend routes map entity → DTO
+from `packages/contracts`, but it needs an explicit decision.
