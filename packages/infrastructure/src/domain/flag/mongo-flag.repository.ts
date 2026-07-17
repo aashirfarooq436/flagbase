@@ -5,20 +5,9 @@ import {
   type IFlagRepository,
 } from "@flagbase/core";
 
+import { isDuplicateKeyError } from "../../shared/mongo-errors";
 import { FlagMapper } from "./flag.mapper";
 import { FlagModel } from "./flag.model";
-
-/** MongoDB's duplicate-key error code. */
-const DUPLICATE_KEY = 11000;
-
-function isDuplicateKeyError(error: unknown): boolean {
-  return (
-    typeof error === "object" &&
-    error !== null &&
-    "code" in error &&
-    (error as { code: unknown }).code === DUPLICATE_KEY
-  );
-}
 
 /**
  * The Mongo-backed IFlagRepository.
