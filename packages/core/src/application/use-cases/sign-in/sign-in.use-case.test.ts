@@ -1,10 +1,10 @@
 import { describe, expect, it } from "vitest";
 
-import { Email } from "../../shared/email.vo";
-import { UnauthenticatedError, ValidationError } from "../../shared/errors";
-import { User } from "../../domain/user/user.entity";
-import { FakePasswordHasher } from "../../lib/test-support/fake-password-hasher";
-import { InMemoryUserRepository } from "../../lib/test-support/in-memory-user.repository";
+import { Email } from "../../../shared/email.vo";
+import { UnauthenticatedError, ValidationError } from "../../../shared/errors";
+import { User } from "../../../domain/user/user.entity";
+import { FakePasswordHasher } from "../../../lib/test-support/fake-password-hasher";
+import { InMemoryUserRepository } from "../../../lib/test-support/in-memory-user.repository";
 import { SignInUseCase } from "./sign-in.use-case";
 
 const NOW = new Date("2026-07-17T00:00:00.000Z");

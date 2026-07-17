@@ -1,4 +1,4 @@
-import type { IPasswordHasher } from "../../shared/ports";
+import type { IPasswordHasher } from "../../application/ports";
 
 /**
  * A deterministic password hasher for tests — `verify` matches iff `hash` produced the

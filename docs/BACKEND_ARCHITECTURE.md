@@ -40,7 +40,7 @@ of them, something has leaked — and you'd discover it in v2, when it's expensi
 
 ## 2. Layers
 
-```
+```text
                     ┌─────────────────────────────────────┐
    delivery         │  app/api/**/route.ts  +  lib/       │  Next.js, CASL, HTTP
                     └──────────────┬──────────────────────┘
@@ -101,18 +101,18 @@ Everything here is a class. Two organizing principles, deliberately not one:
   concepts. `InviteMemberUseCase` touches `Organization`, `Member`, and `User` equally; there's no
   non-arbitrary owner, so the folder structure must not force one.
 
-The top level splits three ways: `shared/` (the kernel — base class, cross-cutting value object,
-errors, ports), `domain/` (feature folders), and `use-cases/` (by action). `shared/` and
-`use-cases/` are honest peers of `domain/`, not features masquerading as siblings.
+The top level splits four ways: `shared/` (the kernel — base class, value objects, errors),
+`domain/` (feature folders), `application/` (the use-case layer — use-cases + the ports they
+need), and `lib/` (test-only tooling). Ports live at the application layer, not the kernel: they're
+interfaces the application declares for what it needs from outside, so `shared/` stays pure.
 
-```
+```text
 core/src/
-├── shared/                       — the kernel; imports nothing
+├── shared/                       — the kernel; imports nothing, NO ports
 │   ├── entity.ts                 abstract Entity base (identity + equals)
 │   ├── email.vo.ts               class Email — login identifier, normalized
-│   ├── errors.ts                 DomainError + Validation/NotFound/Conflict/Forbidden
-│   └── ports.ts                  IIdGenerator, IClock, ITokenGenerator,
-│                                 IPasswordHasher, ITokenHasher, IEmailSender
+│   ├── password.vo.ts            class Password — policy (transient plaintext, pre-hash)
+│   └── errors.ts                 DomainError + Validation/NotFound/Conflict/Forbidden/Unauthenticated
 ├── domain/
 │   ├── user/                     User { id, email, name, passwordHash }, IUserRepository
 │   ├── organization/             Organization { id, name }  — NO ownerId
@@ -121,15 +121,17 @@ core/src/
 │   ├── project/                  Project { id, organizationId, name }
 │   └── flag/                     Flag, FlagKey, RolloutPercentage, TargetingRule,
 │                                 bucketing, EvaluationContext, IFlagRepository
-├── use-cases/                    — by ACTION, one folder each (Flag slice built; rest pending)
-│   ├── use-case.ts               interface IUseCase<TInput, TOutput> { execute(input) }
-│   ├── create-flag/  set-flag-enabled/  update-flag-rules/       ← built + tested
-│   ├── evaluate-flag/  list-flags/                               ← built + tested
-│   ├── sign-up/  sign-in/                                        ← pending (next)
-│   ├── create-organization/  invite-member/  accept-invitation/  ← pending (UoW)
-│   └── change-member-role/  remove-member/  create-project/      ← pending
+├── application/                  — the use-case layer
+│   ├── ports/                    IClock, IIdGenerator, ITokenGenerator, IPasswordHasher,
+│   │                             ITokenHasher, IEmailSender, IUnitOfWork  (+ barrel)
+│   └── use-cases/                — by ACTION, one folder each
+│       ├── use-case.ts           interface IUseCase<TInput, TOutput> { execute(input) }
+│       ├── create-flag/  set-flag-enabled/  update-flag-rules/   ← built + tested
+│       ├── evaluate-flag/  list-flags/  sign-up/  sign-in/        ← built + tested
+│       ├── create-organization/  accept-invitation/              ← built + tested (UoW)
+│       └── invite-member/  change-member-role/  remove-member/  create-project/  ← pending
 └── lib/
-    └── test-support/             in-memory fakes (test-only, NOT exported): repos, clock, id-gen
+    └── test-support/             in-memory fakes (test-only, NOT exported): repos, clock, id-gen, UoW
 ```
 
 Auth is email + password only — there is no `OAuthAccount` (removed 2026-07-17). `PlatformAdmin`
@@ -180,7 +182,7 @@ has no use-cases); `lib/` holds the technical plumbing. Named `persistence/`, no
 the domain lives in `core` — what's here is the Mongo adapters that persist it. **Built and
 integration-tested** against an in-process MongoDB (`mongodb-memory-server`).
 
-```
+```text
 infrastructure/src/
 ├── lib/                            technical plumbing (connection, error mapping, test helpers)
 │   ├── mongoose/

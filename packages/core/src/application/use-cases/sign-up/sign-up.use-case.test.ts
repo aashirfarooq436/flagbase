@@ -1,12 +1,12 @@
 import { describe, expect, it } from "vitest";
 
-import { Email } from "../../shared/email.vo";
-import { ConflictError, ValidationError } from "../../shared/errors";
-import { User } from "../../domain/user/user.entity";
-import { FakeClock } from "../../lib/test-support/fake-clock";
-import { FakeIdGenerator } from "../../lib/test-support/fake-id-generator";
-import { FakePasswordHasher } from "../../lib/test-support/fake-password-hasher";
-import { InMemoryUserRepository } from "../../lib/test-support/in-memory-user.repository";
+import { Email } from "../../../shared/email.vo";
+import { ConflictError, ValidationError } from "../../../shared/errors";
+import { User } from "../../../domain/user/user.entity";
+import { FakeClock } from "../../../lib/test-support/fake-clock";
+import { FakeIdGenerator } from "../../../lib/test-support/fake-id-generator";
+import { FakePasswordHasher } from "../../../lib/test-support/fake-password-hasher";
+import { InMemoryUserRepository } from "../../../lib/test-support/in-memory-user.repository";
 import { SignUpUseCase } from "./sign-up.use-case";
 
 const NOW = new Date("2026-07-17T00:00:00.000Z");

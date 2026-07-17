@@ -41,11 +41,11 @@ invariant to its home.
 
 ```text
 packages/core/src/
-├── shared/                 — the kernel: base class, cross-cutting VO, domain errors, ports
+├── shared/                 — the kernel: base class, Email, Password, errors (pure; NO ports)
 │   ├── entity.ts
 │   ├── email.vo.ts
-│   ├── errors.ts
-│   └── ports.ts
+│   ├── password.vo.ts
+│   └── errors.ts
 ├── domain/
 │   ├── user/               user.entity, user.repository
 │   ├── organization/       organization.entity, organization.repository
@@ -55,17 +55,21 @@ packages/core/src/
 │   └── flag/               flag.entity, flag.repository, flag-key.vo,
 │                           rollout-percentage.vo, targeting-rule, bucketing,
 │                           evaluation-context
-├── use-cases/              by ACTION, one folder each (Flag slice built; see the app layer)
-│   └── use-case.ts         interface IUseCase<TInput, TOutput>
+├── application/            — the use-case layer
+│   ├── ports/              ALL ports (IClock, IIdGenerator, hashers, IEmailSender,
+│   │                       IUnitOfWork) + barrel — infrastructure implements them
+│   └── use-cases/          by ACTION, one folder each (Flag + Auth + org/member slices built)
+│       └── use-case.ts     interface IUseCase<TInput, TOutput> — the shared contract
 ├── lib/                    supporting/tooling — test-only, never exported
-│   └── test-support/       in-memory fakes: repositories, clock, id generator
+│   └── test-support/       in-memory fakes: repositories, clock, id generator, unit-of-work
 └── index.ts                the package's public surface
 ```
 
-`shared/`, `domain/`, and `use-cases/` are honest peers; `lib/` holds test-only tooling (pure, and
-never re-exported, so it doesn't affect core's purity). `invitation/` is its own feature folder,
-not nested under `member/` — it's a distinct aggregate with its own lifecycle, and modeling it
-under membership would imply an ownership it doesn't have.
+`shared/` (kernel), `domain/`, and `application/` are honest peers; `lib/` holds test-only tooling
+(pure, never re-exported, so it doesn't affect core's purity). Ports live in `application/ports/`,
+not the kernel — they're interfaces the application layer declares for what it needs from outside,
+so `shared/` stays pure primitives. `invitation/` is its own feature folder, not nested under
+`member/` — it's a distinct aggregate with its own lifecycle.
 
 ---
 
@@ -104,7 +108,8 @@ impossible to skip at a call site.
 
 ### Ports
 
-Interfaces `core` declares and infrastructure implements. All live in `shared/ports.ts`.
+Interfaces `core` declares and infrastructure implements. All live in `application/ports/` (the
+use-case layer, not the kernel — ports are what the application needs from outside).
 
 | Port              | Contract                                                                 | Why it's a port                                        |
 | ----------------- | ------------------------------------------------------------------------ | ------------------------------------------------------ |

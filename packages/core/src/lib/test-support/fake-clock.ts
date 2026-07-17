@@ -1,4 +1,4 @@
-import type { IClock } from "../../shared/ports";
+import type { IClock } from "../../application/ports";
 
 /**
  * A clock the test controls. Returns a fixed time until moved, so expiry and

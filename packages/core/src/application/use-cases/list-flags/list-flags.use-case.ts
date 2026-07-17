@@ -1,7 +1,7 @@
-import type { Flag } from "../../domain/flag/flag.entity";
-import type { IFlagRepository } from "../../domain/flag/flag.repository";
-import type { IProjectRepository } from "../../domain/project/project.repository";
-import { ForbiddenError, NotFoundError } from "../../shared/errors";
+import type { Flag } from "../../../domain/flag/flag.entity";
+import type { IFlagRepository } from "../../../domain/flag/flag.repository";
+import type { IProjectRepository } from "../../../domain/project/project.repository";
+import { ForbiddenError, NotFoundError } from "../../../shared/errors";
 import type { IUseCase } from "../use-case";
 
 export type ListFlagsInput = {

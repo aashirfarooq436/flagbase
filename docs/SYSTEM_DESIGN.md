@@ -98,7 +98,7 @@ need `Organization`, `Member`, and `User` all at once — there's no non-arbitra
 
 ```text
 core/src/
-├── shared/                        — kernel: Entity base, Email, errors, ports
+├── shared/                        — kernel: Entity, Email, Password, errors (pure; no ports)
 ├── domain/
 │   ├── user/                      User { id, email, name, passwordHash }
 │   ├── organization/              Organization { id, name }  — no ownerId
@@ -106,7 +106,10 @@ core/src/
 │   ├── invitation/               Invitation + InvitationStatus
 │   ├── project/                   Project { id, organizationId, name }
 │   └── flag/                      Flag, FlagKey, RolloutPercentage, TargetingRule, bucketing
-├── use-cases/                     — by ACTION, one folder each (Flag slice built)
+├── application/                   — use-case layer
+│   ├── use-case.ts                IUseCase<In, Out>
+│   ├── ports/                     all ports (IClock, IIdGenerator, hashers, IEmailSender, IUnitOfWork)
+│   └── use-cases/                 by ACTION, one folder each
 └── lib/test-support/              in-memory fakes (test-only, not exported)
 ```
 

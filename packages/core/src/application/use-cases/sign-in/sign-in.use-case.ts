@@ -1,8 +1,8 @@
-import type { User } from "../../domain/user/user.entity";
-import type { IUserRepository } from "../../domain/user/user.repository";
-import { Email } from "../../shared/email.vo";
-import { UnauthenticatedError } from "../../shared/errors";
-import type { IPasswordHasher } from "../../shared/ports";
+import type { User } from "../../../domain/user/user.entity";
+import type { IUserRepository } from "../../../domain/user/user.repository";
+import { Email } from "../../../shared/email.vo";
+import { UnauthenticatedError } from "../../../shared/errors";
+import type { IPasswordHasher } from "../../ports";
 import type { IUseCase } from "../use-case";
 
 export type SignInInput = {

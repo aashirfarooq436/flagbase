@@ -8,6 +8,11 @@
 export { FakeClock } from "./fake-clock";
 export { FakeIdGenerator } from "./fake-id-generator";
 export { FakePasswordHasher } from "./fake-password-hasher";
+export { FakeTokenHasher } from "./fake-token-hasher";
+export { FakeUnitOfWork } from "./fake-unit-of-work";
 export { InMemoryFlagRepository } from "./in-memory-flag.repository";
+export { InMemoryInvitationRepository } from "./in-memory-invitation.repository";
+export { InMemoryMemberRepository } from "./in-memory-member.repository";
+export { InMemoryOrganizationRepository } from "./in-memory-organization.repository";
 export { InMemoryProjectRepository } from "./in-memory-project.repository";
 export { InMemoryUserRepository } from "./in-memory-user.repository";

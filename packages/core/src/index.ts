@@ -18,7 +18,7 @@ export type {
   IPasswordHasher,
   ITokenHasher,
   IEmailSender,
-} from "./shared/ports";
+} from "./application/ports";
 
 // User
 export { User } from "./domain/user/user.entity";
@@ -65,21 +65,29 @@ export type { EvaluationContext } from "./domain/flag/evaluation-context";
 export type { IFlagRepository } from "./domain/flag/flag.repository";
 
 // Use-cases
-export type { IUseCase } from "./use-cases/use-case";
-export { SignUpUseCase } from "./use-cases/sign-up/sign-up.use-case";
-export type { SignUpInput } from "./use-cases/sign-up/sign-up.use-case";
-export { SignInUseCase } from "./use-cases/sign-in/sign-in.use-case";
-export type { SignInInput } from "./use-cases/sign-in/sign-in.use-case";
-export { CreateFlagUseCase } from "./use-cases/create-flag/create-flag.use-case";
-export type { CreateFlagInput } from "./use-cases/create-flag/create-flag.use-case";
-export { SetFlagEnabledUseCase } from "./use-cases/set-flag-enabled/set-flag-enabled.use-case";
-export type { SetFlagEnabledInput } from "./use-cases/set-flag-enabled/set-flag-enabled.use-case";
-export { UpdateFlagRulesUseCase } from "./use-cases/update-flag-rules/update-flag-rules.use-case";
+export type { IUseCase } from "./application/use-cases/use-case";
+export type {
+  IUnitOfWork,
+  TransactionalRepositories,
+} from "./application/ports/unit-of-work";
+export { SignUpUseCase } from "./application/use-cases/sign-up/sign-up.use-case";
+export type { SignUpInput } from "./application/use-cases/sign-up/sign-up.use-case";
+export { SignInUseCase } from "./application/use-cases/sign-in/sign-in.use-case";
+export type { SignInInput } from "./application/use-cases/sign-in/sign-in.use-case";
+export { CreateOrganizationUseCase } from "./application/use-cases/create-organization/create-organization.use-case";
+export type { CreateOrganizationInput } from "./application/use-cases/create-organization/create-organization.use-case";
+export { AcceptInvitationUseCase } from "./application/use-cases/accept-invitation/accept-invitation.use-case";
+export type { AcceptInvitationInput } from "./application/use-cases/accept-invitation/accept-invitation.use-case";
+export { CreateFlagUseCase } from "./application/use-cases/create-flag/create-flag.use-case";
+export type { CreateFlagInput } from "./application/use-cases/create-flag/create-flag.use-case";
+export { SetFlagEnabledUseCase } from "./application/use-cases/set-flag-enabled/set-flag-enabled.use-case";
+export type { SetFlagEnabledInput } from "./application/use-cases/set-flag-enabled/set-flag-enabled.use-case";
+export { UpdateFlagRulesUseCase } from "./application/use-cases/update-flag-rules/update-flag-rules.use-case";
 export type {
   UpdateFlagRulesInput,
   TargetingRuleInput,
-} from "./use-cases/update-flag-rules/update-flag-rules.use-case";
-export { EvaluateFlagUseCase } from "./use-cases/evaluate-flag/evaluate-flag.use-case";
-export type { EvaluateFlagInput } from "./use-cases/evaluate-flag/evaluate-flag.use-case";
-export { ListFlagsUseCase } from "./use-cases/list-flags/list-flags.use-case";
-export type { ListFlagsInput } from "./use-cases/list-flags/list-flags.use-case";
+} from "./application/use-cases/update-flag-rules/update-flag-rules.use-case";
+export { EvaluateFlagUseCase } from "./application/use-cases/evaluate-flag/evaluate-flag.use-case";
+export type { EvaluateFlagInput } from "./application/use-cases/evaluate-flag/evaluate-flag.use-case";
+export { ListFlagsUseCase } from "./application/use-cases/list-flags/list-flags.use-case";
+export type { ListFlagsInput } from "./application/use-cases/list-flags/list-flags.use-case";

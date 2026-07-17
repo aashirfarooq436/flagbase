@@ -1,4 +1,4 @@
-import type { IIdGenerator } from "../../shared/ports";
+import type { IIdGenerator } from "../../application/ports";
 
 /**
  * Generates predictable sequential ids (`id-1`, `id-2`, …) so tests can assert on

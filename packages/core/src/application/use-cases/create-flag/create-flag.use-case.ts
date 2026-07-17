@@ -1,13 +1,13 @@
-import { FlagKey } from "../../domain/flag/flag-key.vo";
-import { Flag } from "../../domain/flag/flag.entity";
-import type { IFlagRepository } from "../../domain/flag/flag.repository";
-import type { IProjectRepository } from "../../domain/project/project.repository";
+import { FlagKey } from "../../../domain/flag/flag-key.vo";
+import { Flag } from "../../../domain/flag/flag.entity";
+import type { IFlagRepository } from "../../../domain/flag/flag.repository";
+import type { IProjectRepository } from "../../../domain/project/project.repository";
 import {
   ConflictError,
   ForbiddenError,
   NotFoundError,
-} from "../../shared/errors";
-import type { IClock, IIdGenerator } from "../../shared/ports";
+} from "../../../shared/errors";
+import type { IClock, IIdGenerator } from "../../ports";
 import type { IUseCase } from "../use-case";
 
 export type CreateFlagInput = {

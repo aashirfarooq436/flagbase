@@ -1,17 +1,17 @@
-import type { Flag } from "../../domain/flag/flag.entity";
-import type { IFlagRepository } from "../../domain/flag/flag.repository";
-import { RolloutPercentage } from "../../domain/flag/rollout-percentage.vo";
+import type { Flag } from "../../../domain/flag/flag.entity";
+import type { IFlagRepository } from "../../../domain/flag/flag.repository";
+import { RolloutPercentage } from "../../../domain/flag/rollout-percentage.vo";
 import {
   type TargetingRule,
   UserIdListRule,
-} from "../../domain/flag/targeting-rule";
-import type { IProjectRepository } from "../../domain/project/project.repository";
+} from "../../../domain/flag/targeting-rule";
+import type { IProjectRepository } from "../../../domain/project/project.repository";
 import {
   ForbiddenError,
   NotFoundError,
   ValidationError,
-} from "../../shared/errors";
-import type { IClock } from "../../shared/ports";
+} from "../../../shared/errors";
+import type { IClock } from "../../ports";
 import type { IUseCase } from "../use-case";
 
 /** The wire shape of a targeting rule — primitives, discriminated by `type`. */

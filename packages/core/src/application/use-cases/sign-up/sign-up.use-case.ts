@@ -1,9 +1,9 @@
-import { User } from "../../domain/user/user.entity";
-import type { IUserRepository } from "../../domain/user/user.repository";
-import { Email } from "../../shared/email.vo";
-import { ConflictError } from "../../shared/errors";
-import { Password } from "../../shared/password.vo";
-import type { IClock, IIdGenerator, IPasswordHasher } from "../../shared/ports";
+import { User } from "../../../domain/user/user.entity";
+import type { IUserRepository } from "../../../domain/user/user.repository";
+import { Email } from "../../../shared/email.vo";
+import { ConflictError } from "../../../shared/errors";
+import { Password } from "../../../shared/password.vo";
+import type { IClock, IIdGenerator, IPasswordHasher } from "../../ports";
 import type { IUseCase } from "../use-case";
 
 export type SignUpInput = {

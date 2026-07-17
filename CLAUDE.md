@@ -54,10 +54,13 @@ In-memory orchestration/decisions (CASL, decorators, wiring) → `lib`.
 
 ```text
 packages/core/src/
-├── shared/           kernel — Entity base, Email, errors, ports (pure domain building-blocks)
+├── shared/           kernel — Entity base, Email, Password, errors (pure primitives, NO ports)
 ├── domain/<feature>/ entity + value objects + repository INTERFACE  (user, organization,
 │                     member, invitation, project, flag)
-├── use-cases/<action>/   one folder per action, NOT nested under an entity (Flag slice built)
+├── application/      the use-case layer
+│   ├── use-case.ts   IUseCase<In, Out>
+│   ├── ports/        ALL ports (IClock, IIdGenerator, hashers, IEmailSender, IUnitOfWork) + barrel
+│   └── use-cases/<action>/   one folder per action, NOT nested under an entity
 └── lib/              supporting/tooling — test-only, never exported (test-support/ fakes)
 
 packages/infrastructure/src/
