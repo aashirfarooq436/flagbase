@@ -128,4 +128,18 @@ describe("Invitation", () => {
       expect(() => invitation.revoke()).toThrow(ConflictError);
     });
   });
+
+  describe("reject", () => {
+    it("moves a pending invitation to rejected", () => {
+      const invitation = makeInvitation();
+      invitation.reject();
+      expect(invitation.status).toBe(InvitationStatus.Rejected);
+    });
+
+    it("refuses to reject a non-pending invitation", () => {
+      const invitation = makeInvitation();
+      invitation.accept(BEFORE_EXPIRY);
+      expect(() => invitation.reject()).toThrow(ConflictError);
+    });
+  });
 });

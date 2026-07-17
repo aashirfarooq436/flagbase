@@ -31,6 +31,11 @@ export class MongoMemberRepository implements IMemberRepository {
     return documents.map(MemberMapper.toDomain);
   }
 
+  async findByUserId(userId: string): Promise<Member[]> {
+    const documents = await MemberModel.find({ userId }).lean();
+    return documents.map(MemberMapper.toDomain);
+  }
+
   async countOwners(organizationId: string): Promise<number> {
     return MemberModel.countDocuments({ organizationId, role: Role.Owner });
   }

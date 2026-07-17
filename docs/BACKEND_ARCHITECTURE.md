@@ -97,9 +97,10 @@ Everything here is a class. Two organizing principles, deliberately not one:
 
 - **Feature folders** for things owned by a single concept — an entity, its value objects, its
   repository interface.
-- **A separate use-case namespace, organized by action** — because use-cases orchestrate _across_
-  concepts. `InviteMemberUseCase` touches `Organization`, `Member`, and `User` equally; there's no
-  non-arbitrary owner, so the folder structure must not force one.
+- **A separate use-case namespace, grouped by feature** — `use-cases/<feature>/<action>/`. A
+  use-case is placed by its _primary subject_ (the aggregate it's mainly about), even when it
+  touches others: `create-organization` → organization, `invite-member`/`accept-invitation` →
+  invitation, `list-members` → member. The `use-case.ts` contract sits at the `use-cases/` root.
 
 The top level splits four ways: `shared/` (the kernel — base class, value objects, errors),
 `domain/` (feature folders), `application/` (the use-case layer — use-cases + the ports they
@@ -124,12 +125,15 @@ core/src/
 ├── application/                  — the use-case layer
 │   ├── ports/                    IClock, IIdGenerator, ITokenGenerator, IPasswordHasher,
 │   │                             ITokenHasher, IEmailSender, IUnitOfWork  (+ barrel)
-│   └── use-cases/                — by ACTION, one folder each (all v1 use-cases built + tested)
+│   └── use-cases/                — grouped by feature (all v1 use-cases built + tested)
 │       ├── use-case.ts           interface IUseCase<TInput, TOutput> { execute(input) }
-│       ├── sign-up/  sign-in/
-│       ├── create-organization/  accept-invitation/              (UoW — multi-write)
-│       ├── invite-member/  change-member-role/  remove-member/  create-project/
-│       └── create-flag/  set-flag-enabled/  update-flag-rules/  evaluate-flag/  list-flags/
+│       ├── user/         sign-up  sign-in  update-profile  change-password
+│       ├── organization/ create-organization  rename-organization  get-organization  list-my-organizations
+│       ├── member/       change-member-role  remove-member  list-members
+│       ├── invitation/   invite-member  accept-invitation  revoke-invitation  reject-invitation  list-pending-invitations
+│       ├── project/      create-project  list-projects  get-project  rename-project  delete-project
+│       └── flag/         create-flag  set-flag-enabled  update-flag-rules  evaluate-flag  list-flags  get-flag  delete-flag
+│       (create-organization + accept-invitation use the Unit of Work; the rest are single-write)
 └── lib/
     └── test-support/             in-memory fakes (test-only, NOT exported): repos, clock, id-gen, UoW
 ```

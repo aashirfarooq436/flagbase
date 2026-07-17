@@ -7,6 +7,8 @@ export interface IMemberRepository {
     userId: string,
   ): Promise<Member | null>;
   findByOrganizationId(organizationId: string): Promise<Member[]>;
+  /** Every membership a user holds — backs "list my organizations". */
+  findByUserId(userId: string): Promise<Member[]>;
   /**
    * How many owners an organization currently has. Backs the "exactly one owner"
    * invariant — change-role and remove-member consult it before demoting or removing

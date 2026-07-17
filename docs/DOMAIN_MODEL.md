@@ -58,8 +58,8 @@ packages/core/src/
 ├── application/            — the use-case layer
 │   ├── ports/              ALL ports (IClock, IIdGenerator, hashers, IEmailSender,
 │   │                       IUnitOfWork) + barrel — infrastructure implements them
-│   └── use-cases/          by ACTION, one folder each (Flag + Auth + org/member slices built)
-│       └── use-case.ts     interface IUseCase<TInput, TOutput> — the shared contract
+│   └── use-cases/          grouped by feature: <feature>/<action>/  (all v1 use-cases built)
+│       └── use-case.ts     interface IUseCase<TInput, TOutput> — the shared contract, at the root
 ├── lib/                    supporting/tooling — test-only, never exported
 │   └── test-support/       in-memory fakes: repositories, clock, id generator, unit-of-work
 └── index.ts                the package's public surface

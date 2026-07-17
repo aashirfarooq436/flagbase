@@ -46,4 +46,11 @@ describe("MongoProjectRepository", () => {
     expect(all).toHaveLength(1);
     expect(all[0]!.name).toBe("Public API");
   });
+
+  it("deletes a project", async () => {
+    await repository.save(makeProject("project-1", "org-1", "API"));
+    await repository.delete("project-1");
+
+    expect(await repository.findById("project-1")).toBeNull();
+  });
 });

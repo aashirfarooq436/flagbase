@@ -20,4 +20,8 @@ export class MongoProjectRepository implements IProjectRepository {
       upsert: true,
     });
   }
+
+  async delete(id: string): Promise<void> {
+    await ProjectModel.deleteOne({ _id: id });
+  }
 }

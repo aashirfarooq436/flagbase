@@ -28,7 +28,10 @@ import { Role } from "../member/role.vo";
 export enum InvitationStatus {
   Pending = "pending",
   Accepted = "accepted",
+  /** The organization cancelled the invitation. */
   Revoked = "revoked",
+  /** The invitee declined the invitation. */
+  Rejected = "rejected",
 }
 
 export type InvitationProps = {
@@ -148,6 +151,7 @@ export class Invitation extends Entity {
     this._acceptedAt = now;
   }
 
+  /** The organization cancels a pending invitation. */
   revoke(): void {
     if (this._status !== InvitationStatus.Pending) {
       throw new ConflictError(
@@ -156,6 +160,20 @@ export class Invitation extends Entity {
     }
 
     this._status = InvitationStatus.Revoked;
+  }
+
+  /**
+   * The invitee declines a pending invitation. Distinct from revoke() — same effect on a
+   * pending invitation, but records that the invitee said no rather than the org pulling it.
+   */
+  reject(): void {
+    if (this._status !== InvitationStatus.Pending) {
+      throw new ConflictError(
+        `Invitation cannot be rejected because it is ${this._status}`,
+      );
+    }
+
+    this._status = InvitationStatus.Rejected;
   }
 
   /**

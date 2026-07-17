@@ -24,4 +24,8 @@ export class InMemoryProjectRepository implements IProjectRepository {
   async save(project: Project): Promise<void> {
     this.store.set(project.id, project);
   }
+
+  async delete(id: string): Promise<void> {
+    this.store.delete(id);
+  }
 }

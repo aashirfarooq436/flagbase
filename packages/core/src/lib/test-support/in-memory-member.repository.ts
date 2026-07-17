@@ -37,6 +37,12 @@ export class InMemoryMemberRepository implements IMemberRepository {
     );
   }
 
+  async findByUserId(userId: string): Promise<Member[]> {
+    return [...this.store.values()].filter(
+      (member) => member.userId === userId,
+    );
+  }
+
   async countOwners(organizationId: string): Promise<number> {
     return [...this.store.values()].filter(
       (member) =>

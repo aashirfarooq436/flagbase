@@ -58,9 +58,9 @@ packages/core/src/
 ├── domain/<feature>/ entity + value objects + repository INTERFACE  (user, organization,
 │                     member, invitation, project, flag)
 ├── application/      the use-case layer
-│   ├── use-case.ts   IUseCase<In, Out>
 │   ├── ports/        ALL ports (IClock, IIdGenerator, hashers, IEmailSender, IUnitOfWork) + barrel
-│   └── use-cases/<action>/   one folder per action, NOT nested under an entity
+│   └── use-cases/    use-case.ts (IUseCase contract) + <feature>/<action>/ folders
+│                     grouped by feature (user, organization, member, invitation, project, flag)
 └── lib/              supporting/tooling — test-only, never exported (test-support/ fakes)
 
 packages/infrastructure/src/
@@ -70,9 +70,11 @@ packages/infrastructure/src/
 
 Rules:
 
-- **Entities/value objects/repo interfaces go in feature folders. Use-cases do not** — they
-  orchestrate across features and have no single owner (`InviteMemberUseCase` touches Organization +
-  Member + User). One folder per use-case, named by the action.
+- **Use-cases are grouped by feature**: `application/use-cases/<feature>/<action>/` (user,
+  organization, member, invitation, project, flag). Place a use-case by its **primary subject** —
+  the aggregate it's mainly about — even if it touches others (`create-organization` → organization,
+  `invite-member`/`accept-invitation` → invitation, `list-members` → member). The `use-case.ts`
+  contract sits at the `use-cases/` root, not in a feature folder.
 - `invitation/` is its own feature folder, not under `member/` — it's a distinct aggregate.
 - Infrastructure's persistence layer is `persistence/`, **not** `domain/` — the domain lives in
   `core`; this layer only persists it. Non-DB adapters (email, webhooks) go in `lib/` or their own

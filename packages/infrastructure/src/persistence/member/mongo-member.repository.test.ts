@@ -60,6 +60,14 @@ describe("MongoMemberRepository", () => {
     expect(await repository.findByOrganizationId("org-1")).toHaveLength(2);
   });
 
+  it("finds every membership a user holds", async () => {
+    await repository.save(makeMember({ id: "a", organizationId: "org-1", userId: "user-7" }));
+    await repository.save(makeMember({ id: "b", organizationId: "org-2", userId: "user-7" }));
+    await repository.save(makeMember({ id: "c", organizationId: "org-1", userId: "user-8" }));
+
+    expect(await repository.findByUserId("user-7")).toHaveLength(2);
+  });
+
   it("counts only owners of an organization", async () => {
     await repository.save(
       makeMember({ id: "a", userId: "u1", role: Role.Owner }),
