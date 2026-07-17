@@ -3,7 +3,7 @@
 FlagBase is a feature-flag platform for small dev teams and indie SaaS builders — the ones who've
 outgrown "deploy and watch," but for whom enterprise flag pricing is disproportionate.
 
-Feature flags decouple *deploying* code from *releasing* it. Instead of a change going live for
+Feature flags decouple _deploying_ code from _releasing_ it. Instead of a change going live for
 everyone the moment it ships, it's wrapped in a runtime check, and a separate system decides who
 sees it and when. That turns a risky release into a 5% rollout you can watch against real traffic,
 and turns an emergency hotfix into flipping a switch instead of running a redeploy under pressure.

@@ -70,7 +70,7 @@ Dependencies point inward, always. `infrastructure` knows about `core`; `core` h
 | `infrastructure` | `core`, Mongoose, external-service SDKs         | `composition`, `apps/*`, `sdk`              |
 | `composition`    | `core`, `infrastructure`                        | `apps/*`, `sdk`                             |
 | `apps/*/api`     | `core`, `composition`, `contracts`, Next, CASL  | `infrastructure` **directly**               |
-| `sdk` **[v2]**   | `core` (+ `contracts`, see §13)                  | `infrastructure`, `composition`, `apps/*`   |
+| `sdk` **[v2]**   | `core` (+ `contracts`, see §13)                 | `infrastructure`, `composition`, `apps/*`   |
 
 The last row matters as much as the first. Apps reach infrastructure only through `composition`.
 If a route handler can `new MongoFlagRepository()`, repository wiring lives in as many places as
@@ -97,7 +97,7 @@ Everything here is a class. Two organizing principles, deliberately not one:
 
 - **Feature folders** for things owned by a single concept — an entity, its value objects, its
   repository interface.
-- **A separate use-case namespace, organized by action** — because use-cases orchestrate *across*
+- **A separate use-case namespace, organized by action** — because use-cases orchestrate _across_
   concepts. `InviteMemberUseCase` touches `Org`, `Member`, and `User` equally; there's no
   non-arbitrary owner, so the folder structure must not force one.
 
@@ -161,7 +161,7 @@ Hold a denormalized field that exists only for read performance — that's persi
   is swappable without changing use-case behavior.
 - **ISP** — repository interfaces stay narrow and declare only what their use-cases actually call.
   Resist a fat generic `IRepository<T>`; it forces implementers to satisfy methods nobody invokes.
-- **DIP** — use-cases receive repository *interfaces* via constructor, injected from outside. A
+- **DIP** — use-cases receive repository _interfaces_ via constructor, injected from outside. A
   use-case that constructs its own dependency is untestable and violates the rule.
 
 ### The evaluation engine
@@ -201,7 +201,7 @@ infrastructure/
 **Must:** implement interfaces `core` declared. Own every Mongoose schema. Own all translation
 between persistence shape and domain shape, in mappers.
 
-**Must never:** contain business rules. If a repository method is *deciding* something rather than
+**Must never:** contain business rules. If a repository method is _deciding_ something rather than
 storing or retrieving it, that decision belongs in a use-case.
 
 ### Denormalization stops here
@@ -238,13 +238,19 @@ class CompositionRoot {
   private platformAdminRepository = new MongoPlatformAdminRepository();
 
   // customer-facing
-  createFlagUseCase = new CreateFlagUseCase(this.flagRepository, this.orgRepository);
+  createFlagUseCase = new CreateFlagUseCase(
+    this.flagRepository,
+    this.orgRepository,
+  );
   toggleFlagUseCase = new ToggleFlagUseCase(this.flagRepository);
   evaluateFlagUseCase = new EvaluateFlagUseCase();
 
   // platform-admin-facing — same repositories, different application rules
   listOrgsUseCase = new ListOrgsUseCase(this.orgRepository);
-  getOrgDetailsUseCase = new GetOrgDetailsUseCase(this.orgRepository, this.projectRepository);
+  getOrgDetailsUseCase = new GetOrgDetailsUseCase(
+    this.orgRepository,
+    this.projectRepository,
+  );
 }
 
 export const composition = new CompositionRoot();
@@ -282,20 +288,22 @@ function withDb(handler: RouteHandler): RouteHandler {
 function withAuth(handler: RouteHandler): RouteHandler {
   return async (req, ctx) => {
     const user = await resolveUserFromSession(req);
-    if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    if (!user)
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     return handler(req, { ...ctx, user });
   };
 }
 
 // with-ability.ts — CASL check, else 403
 function withAbility(action: string, subject: string) {
-  return (handler: RouteHandler): RouteHandler => async (req, ctx) => {
-    const ability = buildAbilityFor(ctx.user, ctx.org);
-    if (ability.cannot(action, subject)) {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-    }
-    return handler(req, { ...ctx, ability });
-  };
+  return (handler: RouteHandler): RouteHandler =>
+    async (req, ctx) => {
+      const ability = buildAbilityFor(ctx.user, ctx.org);
+      if (ability.cannot(action, subject)) {
+        return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+      }
+      return handler(req, { ...ctx, ability });
+    };
 }
 
 // with-app-handlers.ts — the one route authors reach for
@@ -313,7 +321,9 @@ A route does exactly four things — parse input, call one use-case, map the res
 // app/api/projects/[projectId]/flags/[flagId]/toggle/route.ts
 export const PATCH = withAppHandlers(
   async (req, ctx) => {
-    const flag = await composition.toggleFlagUseCase.execute({ flagId: ctx.params.flagId });
+    const flag = await composition.toggleFlagUseCase.execute({
+      flagId: ctx.params.flagId,
+    });
     return NextResponse.json(FlagPresenter.toResponse(flag));
   },
   { action: "manage", subject: "Flag" },
@@ -343,15 +353,24 @@ check) and scopes its response to exactly the one project the key belongs to.
 
 ## 7. Authorization: where the CASL boundary sits
 
-`core` defines what roles *mean*, as plain data, with no CASL import:
+`core` defines what roles _mean_, as plain data, with no CASL import:
 
 ```typescript
 // core/member/role.vo.ts
-enum Role { Owner = "owner", Admin = "admin", Member = "member" }
+enum Role {
+  Owner = "owner",
+  Admin = "admin",
+  Member = "member",
+}
 
 const ROLE_PERMISSIONS: Record<Role, string[]> = {
-  [Role.Owner]:  ["org:manage", "project:manage", "flag:manage", "member:manage"],
-  [Role.Admin]:  ["project:manage", "flag:manage", "member:read"],
+  [Role.Owner]: [
+    "org:manage",
+    "project:manage",
+    "flag:manage",
+    "member:manage",
+  ],
+  [Role.Admin]: ["project:manage", "flag:manage", "member:read"],
   [Role.Member]: ["project:read", "flag:read"],
 };
 ```
@@ -366,11 +385,11 @@ ignorant that CASL exists, which is what allows the SDK — which has no use for
 ## 8. Platform admin is a separate actor — [v2]
 
 > **Deferred.** Not built in v1; support happens by querying Mongo directly until then. Recorded
-> because the "separate actor" decision constrains how `Role` and auth are modeled *now* — the
+> because the "separate actor" decision constrains how `Role` and auth are modeled _now_ — the
 > shortcut it rules out (`if (user.isSuperAdmin)`) is one you'd otherwise take in v1 and regret.
 
 `PlatformAdmin` is not a `Member` with extra powers. Its authority isn't derived from membership
-in any tenant — it operates *across* tenants. Modeling it inside the `Org`/`Member`/`Role` system
+in any tenant — it operates _across_ tenants. Modeling it inside the `Org`/`Member`/`Role` system
 would mean either a fake org membership or `if (user.isSuperAdmin)` checks leaking through
 tenant-scoped logic.
 
@@ -379,7 +398,7 @@ So it gets its own entity, its own `PlatformRole` vocabulary (about cross-tenant
 `apps/admin` (`withAdminAuth` + `withAdminAbility`) — a completely separate login, unreachable
 from the customer surface.
 
-What it *shares* is the repositories. v1 admin use-cases are read-only and reuse
+What it _shares_ is the repositories. v1 admin use-cases are read-only and reuse
 `IOrgRepository`/`IProjectRepository`/`IFlagRepository` unchanged. That's a third consumer of the
 same domain model with a third set of application rules — another proof that `core` is genuinely
 decoupled rather than nominally so.
@@ -439,16 +458,16 @@ a determinism test: the same user + flag must bucket identically across many rep
 
 ## 11. Conventions
 
-| Thing                | File                                  | Symbol                    |
-| -------------------- | ------------------------------------- | ------------------------- |
-| Entity               | `flag.entity.ts`                      | `class Flag`              |
-| Value object         | `rollout-percentage.vo.ts`            | `class RolloutPercentage` |
+| Thing                | File                                  | Symbol                      |
+| -------------------- | ------------------------------------- | --------------------------- |
+| Entity               | `flag.entity.ts`                      | `class Flag`                |
+| Value object         | `rollout-percentage.vo.ts`            | `class RolloutPercentage`   |
 | Repository interface | `flag.repository.ts`                  | `interface IFlagRepository` |
 | Repository impl      | `mongo-flag.repository.ts`            | `class MongoFlagRepository` |
-| Mongoose schema      | `flag.model.ts`                       | `FlagModel`               |
-| Mapper               | `flag.mapper.ts`                      | `class FlagMapper`        |
-| Use-case             | `toggle-flag/toggle-flag.use-case.ts` | `class ToggleFlagUseCase` |
-| Decorator            | `with-auth.ts`                        | `withAuth`                |
+| Mongoose schema      | `flag.model.ts`                       | `FlagModel`                 |
+| Mapper               | `flag.mapper.ts`                      | `class FlagMapper`          |
+| Use-case             | `toggle-flag/toggle-flag.use-case.ts` | `class ToggleFlagUseCase`   |
+| Decorator            | `with-auth.ts`                        | `withAuth`                  |
 
 Interfaces carry an `I` prefix only for repositories, where interface and implementation would
 otherwise collide by name. Don't `I`-prefix everything.

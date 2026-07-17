@@ -67,8 +67,8 @@ Staging/preview environments answer "does this code work." They do **not** answe
   scattered `if (user.plan === 'pro')` checks throughout a codebase becomes unmanageable;
   centralizing it as a flag/rule is more maintainable and auditable.
 
-**The mental model:** staging tests whether code *works*. Feature flags control who
-*experiences* code that's already confirmed to work, and how much blast radius a mistake has
+**The mental model:** staging tests whether code _works_. Feature flags control who
+_experiences_ code that's already confirmed to work, and how much blast radius a mistake has
 if the team is wrong. Different axis entirely.
 
 ### 3.3 Target buyer
@@ -91,7 +91,7 @@ architecturally sound MVP.
 
 This is not just a dashboard with an API. It is a **two-part product**:
 
-1. **An npm package (the SDK)** — installed by a customer into *their own* repo
+1. **An npm package (the SDK)** — installed by a customer into _their own_ repo
    (`npm install <sdk-name>`). It runs inside the customer's own server/edge/client runtime,
    evaluates flags locally against rules it has fetched/cached, and reports evaluation
    context back. This is the thing that actually gets embedded in other people's codebases —
@@ -124,8 +124,8 @@ runtime assumptions.
 
 ### 4.2 v2+ (explicitly deferred)
 
-- Multiple environments per project (dev/staging/prod), where the flag *definition* is
-  shared but its *rules/values* differ per environment.
+- Multiple environments per project (dev/staging/prod), where the flag _definition_ is
+  shared but its _rules/values_ differ per environment.
 - Multivariate flag values (string/number/JSON, not just boolean).
 - Full audit log of evaluations and rule changes.
 - More advanced targeting (attribute-based rules beyond simple userId/percentage — e.g.
@@ -197,7 +197,7 @@ If this logic is written as a plain TypeScript function/module with zero framewo
 imports, it can be reused unmodified across all of the above — and literally re-exported by
 the npm package itself. This is the practical, provable test of whether the Clean Architecture
 domain layer is actually decoupled, rather than just organized into folders that look
-decoupled: the SDK package *is* a second consumer of `core/`, in a different process, on a
+decoupled: the SDK package _is_ a second consumer of `core/`, in a different process, on a
 different machine, and it must work without modification.
 
 **Percentage rollout specifically** requires deterministic hashing (e.g. hash of

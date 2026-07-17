@@ -4,7 +4,7 @@ The entities, value objects, ports, and invariants of `packages/core`. This is t
 what exists in the domain and where each rule is enforced.
 
 Architectural rules for `core` (purity, the import matrix, SOLID) live in
-`BACKEND_ARCHITECTURE.md`. This document is about *what is modeled*, not how the layers relate.
+`BACKEND_ARCHITECTURE.md`. This document is about _what is modeled_, not how the layers relate.
 
 **v1 scope.** Everything here is v1 except items marked **[v2]** — currently `PlatformAdmin` (§8)
 and `Project.apiKeyHash` (§7.1), both of which exist only to serve deliverables deferred out of v1
@@ -87,14 +87,14 @@ impossible to skip.
 
 ### Ports
 
-| Port               | Contract                                                  | Why it's a port                                    |
-| ------------------ | --------------------------------------------------------- | -------------------------------------------------- |
-| `IIdGenerator`     | `generate(): string`                                       | Entropy is environmental. Fakes give tests stable ids. |
-| `IClock`           | `now(): Date`                                              | Time is environmental. Lets tests control expiry.   |
-| `ITokenGenerator`  | `generate(): string`                                       | High-entropy secrets (API keys, invite tokens).     |
-| `IPasswordHasher`  | `hash(plain): Promise<string>` / `verify(plain, hash): Promise<boolean>` | bcrypt/argon2 is an npm dep — can't live in core. |
-| `ITokenHasher`     | `hash(token): string` / `verify(token, hash): boolean`      | Same, for high-entropy secrets.                     |
-| `IEmailSender`     | `send(to: Email, message): Promise<void>`                  | Reaches an external service.                        |
+| Port              | Contract                                                                 | Why it's a port                                        |
+| ----------------- | ------------------------------------------------------------------------ | ------------------------------------------------------ |
+| `IIdGenerator`    | `generate(): string`                                                     | Entropy is environmental. Fakes give tests stable ids. |
+| `IClock`          | `now(): Date`                                                            | Time is environmental. Lets tests control expiry.      |
+| `ITokenGenerator` | `generate(): string`                                                     | High-entropy secrets (API keys, invite tokens).        |
+| `IPasswordHasher` | `hash(plain): Promise<string>` / `verify(plain, hash): Promise<boolean>` | bcrypt/argon2 is an npm dep — can't live in core.      |
+| `ITokenHasher`    | `hash(token): string` / `verify(token, hash): boolean`                   | Same, for high-entropy secrets.                        |
+| `IEmailSender`    | `send(to: Email, message): Promise<void>`                                | Reaches an external service.                           |
 
 **`IPasswordHasher` and `ITokenHasher` are deliberately separate ports**, and it's a security
 distinction, not tidiness. Passwords are low-entropy and need deliberately slow hashing
@@ -123,9 +123,9 @@ core/user/
 
 ```typescript
 class User extends Entity {
-  readonly email: Email;          // immutable in v1 (§4.4)
+  readonly email: Email; // immutable in v1 (§4.4)
   private _name: string;
-  private _passwordHash: string | null;    // opaque to core; IPasswordHasher produced it
+  private _passwordHash: string | null; // opaque to core; IPasswordHasher produced it
   private _emailVerifiedAt: Date | null;
   readonly createdAt: Date;
 
@@ -148,12 +148,14 @@ real "signed up, no org yet" state the dashboard must handle. `User` therefore h
 ```typescript
 class OAuthAccount extends Entity {
   readonly userId: string;
-  readonly provider: OAuthProvider;      // Google in v1; Github/Apple slot in later
-  readonly providerAccountId: string;    // the provider's stable subject id, not the email
+  readonly provider: OAuthProvider; // Google in v1; Github/Apple slot in later
+  readonly providerAccountId: string; // the provider's stable subject id, not the email
   readonly createdAt: Date;
 }
 
-enum OAuthProvider { Google = "google" }
+enum OAuthProvider {
+  Google = "google",
+}
 ```
 
 One `User` has many `OAuthAccount`s — that's what "one user, multiple sign-in methods" means. The
@@ -255,11 +257,20 @@ instead of needing a special case.
 ### `Role`
 
 ```typescript
-enum Role { Owner = "owner", Admin = "admin", Member = "member" }
+enum Role {
+  Owner = "owner",
+  Admin = "admin",
+  Member = "member",
+}
 
 const ROLE_PERMISSIONS: Record<Role, string[]> = {
-  [Role.Owner]:  ["org:manage", "project:manage", "flag:manage", "member:manage"],
-  [Role.Admin]:  ["project:manage", "flag:manage", "member:read"],
+  [Role.Owner]: [
+    "org:manage",
+    "project:manage",
+    "flag:manage",
+    "member:manage",
+  ],
+  [Role.Admin]: ["project:manage", "flag:manage", "member:read"],
   [Role.Member]: ["project:read", "flag:read"],
 };
 ```
@@ -272,20 +283,24 @@ from it. That's what lets the SDK depend on `core` without dragging CASL along.
 ```typescript
 class Invitation extends Entity {
   readonly orgId: string;
-  readonly email: Email;          // invitee may have no account yet
-  readonly role: Role;            // role granted on acceptance
-  readonly tokenHash: string;     // ITokenHasher; raw token goes in the email only
+  readonly email: Email; // invitee may have no account yet
+  readonly role: Role; // role granted on acceptance
+  readonly tokenHash: string; // ITokenHasher; raw token goes in the email only
   private _status: InvitationStatus;
   readonly expiresAt: Date;
   readonly invitedByUserId: string;
   readonly createdAt: Date;
 
-  isExpired(now: Date): boolean;  // computed, not stored
-  accept(now: Date): void;        // throws if not Pending or already expired
+  isExpired(now: Date): boolean; // computed, not stored
+  accept(now: Date): void; // throws if not Pending or already expired
   revoke(): void;
 }
 
-enum InvitationStatus { Pending = "pending", Accepted = "accepted", Revoked = "revoked" }
+enum InvitationStatus {
+  Pending = "pending",
+  Accepted = "accepted",
+  Revoked = "revoked",
+}
 ```
 
 **Invites an email, not a userId** — the invitee may not have an account, which is exactly the
@@ -346,19 +361,23 @@ Note this doesn't remove `ITokenHasher` or `ITokenGenerator` from v1 — invitat
 ```typescript
 class Flag extends Entity {
   readonly projectId: string;
-  readonly key: FlagKey;                 // immutable — customer code references it
+  readonly key: FlagKey; // immutable — customer code references it
   private _description: string;
-  private _enabled: boolean;             // the master switch
-  private _targetingRules: TargetingRule[];   // ordered; first match wins
+  private _enabled: boolean; // the master switch
+  private _targetingRules: TargetingRule[]; // ordered; first match wins
   private _rolloutPercentage: RolloutPercentage;
-  private _defaultValue: boolean;        // fallthrough when enabled and nothing matched
+  private _defaultValue: boolean; // fallthrough when enabled and nothing matched
   readonly createdAt: Date;
   private _updatedAt: Date;
 
   evaluate(context: EvaluationContext): boolean;
   enable(now: Date): void;
   disable(now: Date): void;
-  updateRules(rules: TargetingRule[], rollout: RolloutPercentage, now: Date): void;
+  updateRules(
+    rules: TargetingRule[],
+    rollout: RolloutPercentage,
+    now: Date,
+  ): void;
 }
 ```
 
@@ -368,7 +387,7 @@ would silently break their app at runtime — that's a delete-and-recreate, not 
 ### 7.3 Evaluation
 
 Evaluation lives on the entity, not only in a use-case. It's pure domain logic with no
-orchestration and no I/O — it *is* the business rule of a flag:
+orchestration and no I/O — it _is_ the business rule of a flag:
 
 ```typescript
 evaluate(context: EvaluationContext): boolean {
@@ -394,13 +413,13 @@ dashboard's "test this rule" preview. The SDK, which already holds the flag in c
 
 ```typescript
 type EvaluationContext = {
-  key: string;                                            // stable id of the subject
+  key: string; // stable id of the subject
   attributes?: Record<string, string | number | boolean>; // v2 attribute targeting
 };
 ```
 
 **Deliberately not called `UserContext`.** FlagBase has a `User` entity — someone who logs into
-your dashboard. The subject of an evaluation is the *customer's* end-user, an entirely unrelated
+your dashboard. The subject of an evaluation is the _customer's_ end-user, an entirely unrelated
 person. Two things called `User` in one codebase, meaning different people, is a bug factory.
 
 `key` is required, because percentage rollout can't bucket without a stable identifier. For
@@ -414,7 +433,7 @@ class RolloutPercentage {
     // integer, 0..100 — throws otherwise
   }
   includes(subjectKey: string, flagKey: string): boolean {
-    return bucketOf(subjectKey, flagKey) < this.value;   // 0 → never, 100 → always
+    return bucketOf(subjectKey, flagKey) < this.value; // 0 → never, 100 → always
   }
 }
 ```
@@ -422,19 +441,19 @@ class RolloutPercentage {
 ```typescript
 // core/flag/bucketing.ts — pure, no imports, ~20 lines (FNV-1a or murmur3)
 export function bucketOf(subjectKey: string, flagKey: string): number {
-  return hash(`${flagKey}:${subjectKey}`) % 100;         // 0..99
+  return hash(`${flagKey}:${subjectKey}`) % 100; // 0..99
 }
 ```
 
 **Hashing `flagKey + subjectKey`, not `subjectKey` alone, is deliberate.** If the subject key were
-hashed by itself, the same user would land in the same bucket for *every* flag — so a user unlucky
+hashed by itself, the same user would land in the same bucket for _every_ flag — so a user unlucky
 enough to be in bucket 3 would be in the first 5% of every single rollout across the platform,
 forever. Salting with the flag key makes each flag's bucketing independent.
 
 **This function freezes the moment the SDK ships.** Changing the hash re-buckets every user of
 every flag simultaneously — a silent, platform-wide, un-debuggable behavior change.
 
-The one upside of deferring the SDK: it isn't frozen *yet*. No customer depends on this bucketing
+The one upside of deferring the SDK: it isn't frozen _yet_. No customer depends on this bucketing
 in v1, so the algorithm is still cheap to change. That window closes permanently with the first
 v2 SDK release — so if there's a reason to revisit the hash choice, revisit it now.
 
@@ -442,12 +461,16 @@ v2 SDK release — so if there's a reason to revisit the hash choice, revisit it
 
 ```typescript
 interface TargetingRule {
-  readonly value: boolean;                        // what to return on a match
+  readonly value: boolean; // what to return on a match
   matches(context: EvaluationContext): boolean;
 }
 
-class UserIdListRule implements TargetingRule {   // the only rule type in v1
-  constructor(readonly userIds: string[], readonly value: boolean) {}
+class UserIdListRule implements TargetingRule {
+  // the only rule type in v1
+  constructor(
+    readonly userIds: string[],
+    readonly value: boolean,
+  ) {}
   matches(context: EvaluationContext): boolean {
     return this.userIds.includes(context.key);
   }
@@ -473,7 +496,7 @@ class FlagKey {
 ## 8. Platform admin — [v2]
 
 > **Deferred with `apps/admin`** (`SYSTEM_DESIGN.md` §0). Not built in v1. Kept here because the
-> "separate actor" decision constrains `Role` *now*: it's what rules out bolting an
+> "separate actor" decision constrains `Role` _now_: it's what rules out bolting an
 > `isSuperAdmin` flag onto `User` in v1 — the shortcut that would be cheapest today and worst
 > later.
 
@@ -485,11 +508,19 @@ class PlatformAdmin extends Entity {
   readonly createdAt: Date;
 }
 
-enum PlatformRole { SuperAdmin = "super_admin", Support = "support" }
+enum PlatformRole {
+  SuperAdmin = "super_admin",
+  Support = "support",
+}
 
 const PLATFORM_ROLE_PERMISSIONS: Record<PlatformRole, string[]> = {
-  [PlatformRole.SuperAdmin]: ["org:list", "org:read", "project:read", "flag:read"],
-  [PlatformRole.Support]:    ["org:list", "org:read"],
+  [PlatformRole.SuperAdmin]: [
+    "org:list",
+    "org:read",
+    "project:read",
+    "flag:read",
+  ],
+  [PlatformRole.Support]: ["org:list", "org:read"],
 };
 ```
 
@@ -522,20 +553,20 @@ PlatformAdmin  [v2]                         separate actor; no tenant relationsh
 
 ## 10. Where each invariant lives
 
-| Invariant                                        | Enforced in                             |
-| ------------------------------------------------ | --------------------------------------- |
-| `RolloutPercentage` is an integer 0–100          | VO constructor                          |
-| `FlagKey` format                                 | VO constructor                          |
-| `Email` shape + normalization                    | VO constructor                          |
-| Invitation not expired / still pending on accept | `Invitation.accept(now)`                |
-| Flag disabled ⇒ evaluates false for everyone     | `Flag.evaluate()`                       |
-| Email unique across users                        | use-case + **DB unique index**          |
-| Flag key unique per project                      | use-case + **DB unique index**          |
-| One membership per (org, user)                   | use-case + **DB unique index**          |
-| One OAuth account per (provider, providerAccountId) | use-case + **DB unique index**       |
-| An org has exactly one owner                     | use-cases: create-org, change-member-role, remove-member |
-| A user always has ≥1 way to sign in              | use-case: unlink-oauth-account          |
-| Link only into a verified account (§4.3)         | use-case: sign-in-with-oauth            |
+| Invariant                                           | Enforced in                                              |
+| --------------------------------------------------- | -------------------------------------------------------- |
+| `RolloutPercentage` is an integer 0–100             | VO constructor                                           |
+| `FlagKey` format                                    | VO constructor                                           |
+| `Email` shape + normalization                       | VO constructor                                           |
+| Invitation not expired / still pending on accept    | `Invitation.accept(now)`                                 |
+| Flag disabled ⇒ evaluates false for everyone        | `Flag.evaluate()`                                        |
+| Email unique across users                           | use-case + **DB unique index**                           |
+| Flag key unique per project                         | use-case + **DB unique index**                           |
+| One membership per (org, user)                      | use-case + **DB unique index**                           |
+| One OAuth account per (provider, providerAccountId) | use-case + **DB unique index**                           |
+| An org has exactly one owner                        | use-cases: create-org, change-member-role, remove-member |
+| A user always has ≥1 way to sign in                 | use-case: unlink-oauth-account                           |
+| Link only into a verified account (§4.3)            | use-case: sign-in-with-oauth                             |
 
 The pattern: **entity-local rules go in constructors and methods; cross-row rules go in use-cases
 and are backstopped by a database constraint.** The DB index isn't redundant — it's what holds
@@ -545,7 +576,7 @@ when two requests race, which a use-case check alone cannot prevent.
 
 ## 11. Open questions
 
-**Transactions are now v1-blocking, not deferred.** `CreateOrgUseCase` writes an `Org` *and* its
+**Transactions are now v1-blocking, not deferred.** `CreateOrgUseCase` writes an `Org` _and_ its
 owner `Member` — an org with no owner is a corrupt state that violates §10. `AcceptInvitationUseCase`
 writes a `Member` and updates the `Invitation`. Both are multi-document writes that must not
 half-succeed. Handing a Mongo session to a use-case without leaking Mongoose into `core` needs a

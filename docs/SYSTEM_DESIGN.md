@@ -16,12 +16,12 @@ API? If yes, it cannot go in `core/`.
 
 **v1 is a learning milestone, not a release.** It is the control plane only:
 
-| In v1                                          | Deferred to v2                          |
-| ---------------------------------------------- | --------------------------------------- |
-| `packages/core`                                | `packages/sdk` (§7)                     |
-| `packages/infrastructure`                      | `apps/admin` + `PlatformAdmin` (§9)     |
-| `packages/composition`                         | `Project.apiKeyHash` + `/api/sdk/rules` |
-| `apps/dashboard` — auth, orgs, team, flags     | Multi-environment, multivariate, audit log |
+| In v1                                      | Deferred to v2                             |
+| ------------------------------------------ | ------------------------------------------ |
+| `packages/core`                            | `packages/sdk` (§7)                        |
+| `packages/infrastructure`                  | `apps/admin` + `PlatformAdmin` (§9)        |
+| `packages/composition`                     | `Project.apiKeyHash` + `/api/sdk/rules`    |
+| `apps/dashboard` — auth, orgs, team, flags | Multi-environment, multivariate, audit log |
 
 Nothing consumes flags at runtime in v1. Evaluation is exercised only by the dashboard's "test
 this rule" preview. That's deliberate: build the control plane correctly, then add the data plane.
@@ -31,7 +31,7 @@ purity — if `core` imported Mongoose, the SDK build broke immediately. With it
 enforcement moves to the package boundary: `packages/core/package.json` carries an empty
 `dependencies` block, so `import mongoose` inside an entity fails to resolve at build time. The
 witness is gone; the mechanism isn't. Every §7 and §9 decision below stays documented because
-adding them in v2 must be *additive* — a new package and new use-cases, not a restructuring.
+adding them in v2 must be _additive_ — a new package and new use-cases, not a restructuring.
 
 Sections marked **[v2]** are designed but not being built yet.
 
@@ -426,7 +426,7 @@ calls `EvaluateFlagUseCase` locally, no network round-trip per evaluation.
 A second, separate deliverable alongside the customer dashboard: `apps/admin`, used by Aashir
 (and, later, support staff) to operate the platform itself — not a tenant's account. This is
 **not** modeled as a special case of `Org`/`Member`/`Role` (§2), because a platform admin's
-authority isn't derived from membership in any tenant; it operates *across* tenants. Bolting it
+authority isn't derived from membership in any tenant; it operates _across_ tenants. Bolting it
 onto the existing role system would mean either a fake `Org` membership for the admin, or leaky
 `if (user.isSuperAdmin)` checks scattered through tenant-scoped logic — the same anti-pattern
 the brief already flagged (§6.5.1) for persistence-layer leakage, just at the auth layer instead.
