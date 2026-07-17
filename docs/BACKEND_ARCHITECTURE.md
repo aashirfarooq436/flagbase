@@ -121,12 +121,15 @@ core/src/
 │   ├── project/                  Project { id, organizationId, name }
 │   └── flag/                     Flag, FlagKey, RolloutPercentage, TargetingRule,
 │                                 bucketing, EvaluationContext, IFlagRepository
-└── use-cases/                    — [NOT BUILT YET] by ACTION, one folder each
-    ├── use-case.ts               interface IUseCase<TInput, TOutput> { execute(input) }
-    ├── sign-up/  create-organization/  invite-member/  accept-invitation/
-    ├── change-member-role/  remove-member/  create-project/
-    ├── create-flag/  toggle-flag/  update-flag-rules/  evaluate-flag/
-    └── list-organizations/  [v2, admin]   get-organization-details/  [v2, admin]
+├── use-cases/                    — by ACTION, one folder each (Flag slice built; rest pending)
+│   ├── use-case.ts               interface IUseCase<TInput, TOutput> { execute(input) }
+│   ├── create-flag/  set-flag-enabled/  update-flag-rules/       ← built + tested
+│   ├── evaluate-flag/  list-flags/                               ← built + tested
+│   ├── sign-up/  sign-in/                                        ← pending (next)
+│   ├── create-organization/  invite-member/  accept-invitation/  ← pending (UoW)
+│   └── change-member-role/  remove-member/  create-project/      ← pending
+└── lib/
+    └── test-support/             in-memory fakes (test-only, NOT exported): repos, clock, id-gen
 ```
 
 Auth is email + password only — there is no `OAuthAccount` (removed 2026-07-17). `PlatformAdmin`
@@ -144,7 +147,7 @@ Hold a denormalized field that exists only for read performance — that's persi
 
 ### SOLID, concretely
 
-- **SRP** — one use-case class per business operation. `ToggleFlagUseCase` does not also validate
+- **SRP** — one use-case class per business operation. `SetFlagEnabledUseCase` does not also validate
   targeting rules; that's `UpdateFlagRulesUseCase`'s job.
 - **OCP** — a new targeting rule type implements the `TargetingRule` contract. It does not add an
   `if` branch to `EvaluateFlagUseCase`.
@@ -245,7 +248,7 @@ class CompositionRoot {
     this.flagRepository,
     this.organizationRepository,
   );
-  toggleFlagUseCase = new ToggleFlagUseCase(this.flagRepository);
+  setFlagEnabledUseCase = new SetFlagEnabledUseCase(this.flagRepository);
   evaluateFlagUseCase = new EvaluateFlagUseCase();
 
   // [v2] platform-admin use-cases wire to the SAME repositories, different application rules:
@@ -317,11 +320,14 @@ function withAppHandlers(
 A route does exactly four things — parse input, call one use-case, map the result, return:
 
 ```typescript
-// app/api/projects/[projectId]/flags/[flagId]/toggle/route.ts
+// app/api/projects/[projectId]/flags/[flagId]/route.ts
 export const PATCH = withAppHandlers(
   async (req, ctx) => {
-    const flag = await composition.toggleFlagUseCase.execute({
+    const { enabled } = await req.json();
+    const flag = await composition.setFlagEnabledUseCase.execute({
+      organizationId: ctx.organizationId,
       flagId: ctx.params.flagId,
+      enabled,
     });
     return NextResponse.json(FlagPresenter.toResponse(flag));
   },
@@ -406,13 +412,13 @@ genuinely decoupled rather than nominally so.
 
 ## 9. Request lifecycle, end to end
 
-### Write path — customer toggles a flag
+### Write path — customer disables a flag (kill switch)
 
-1. `PATCH /api/projects/:projectId/flags/:flagId/toggle`
+1. `PATCH /api/projects/:projectId/flags/:flagId` with `{ enabled: false }`
 2. `withDb` → ensure Mongoose connection
 3. `withAuth` → resolve `User` from session, else 401
 4. `withAbility('manage', 'Flag')` → build CASL ability from domain `Role`, else 403
-5. Route parses `flagId`, calls `composition.toggleFlagUseCase.execute({ flagId })`
+5. Route parses input, calls `composition.setFlagEnabledUseCase.execute({ organizationId, flagId, enabled })`
 6. Use-case loads the `Flag` through `IFlagRepository`, applies the rule, saves
 7. `MongoFlagRepository.save()` → `FlagMapper` entity→document → Mongoose → MongoDB
 8. Route maps the result to a response and returns
@@ -440,7 +446,7 @@ Next.js.
 
 ```typescript
 const repo = new InMemoryFlagRepository([existingFlag]);
-const useCase = new ToggleFlagUseCase(repo);
+const useCase = new SetFlagEnabledUseCase(repo);
 await useCase.execute({ flagId: "flag-1" });
 expect(repo.findById("flag-1")).toHaveProperty("enabled", false);
 ```
@@ -457,16 +463,16 @@ a determinism test: the same user + flag must bucket identically across many rep
 
 ## 11. Conventions
 
-| Thing                | File                                  | Symbol                      |
-| -------------------- | ------------------------------------- | --------------------------- |
-| Entity               | `flag.entity.ts`                      | `class Flag`                |
-| Value object         | `rollout-percentage.vo.ts`            | `class RolloutPercentage`   |
-| Repository interface | `flag.repository.ts`                  | `interface IFlagRepository` |
-| Repository impl      | `mongo-flag.repository.ts`            | `class MongoFlagRepository` |
-| Mongoose schema      | `flag.model.ts`                       | `FlagModel`                 |
-| Mapper               | `flag.mapper.ts`                      | `class FlagMapper`          |
-| Use-case             | `toggle-flag/toggle-flag.use-case.ts` | `class ToggleFlagUseCase`   |
-| Decorator            | `with-auth.ts`                        | `withAuth`                  |
+| Thing                | File                                            | Symbol                        |
+| -------------------- | ----------------------------------------------- | ----------------------------- |
+| Entity               | `flag.entity.ts`                                | `class Flag`                  |
+| Value object         | `rollout-percentage.vo.ts`                      | `class RolloutPercentage`     |
+| Repository interface | `flag.repository.ts`                            | `interface IFlagRepository`   |
+| Repository impl      | `mongo-flag.repository.ts`                      | `class MongoFlagRepository`   |
+| Mongoose schema      | `flag.model.ts`                                 | `FlagModel`                   |
+| Mapper               | `flag.mapper.ts`                                | `class FlagMapper`            |
+| Use-case             | `set-flag-enabled/set-flag-enabled.use-case.ts` | `class SetFlagEnabledUseCase` |
+| Decorator            | `with-auth.ts`                                  | `withAuth`                    |
 
 Interfaces carry an `I` prefix only for repositories, where interface and implementation would
 otherwise collide by name. Don't `I`-prefix everything.

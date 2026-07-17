@@ -57,7 +57,8 @@ packages/core/src/
 ├── shared/           kernel — Entity base, Email, errors, ports (pure domain building-blocks)
 ├── domain/<feature>/ entity + value objects + repository INTERFACE  (user, organization,
 │                     member, invitation, project, flag)
-└── use-cases/<action>/   [not built] one folder per action, NOT nested under an entity
+├── use-cases/<action>/   one folder per action, NOT nested under an entity (Flag slice built)
+└── lib/              supporting/tooling — test-only, never exported (test-support/ fakes)
 
 packages/infrastructure/src/
 ├── lib/              technical plumbing (lib/mongoose/{connection,mongo-errors}, lib/test-support/)
@@ -89,9 +90,9 @@ Rules:
   path the persistence mapper uses to rehydrate.
 - **Mutating methods take `now: Date`** (`flag.enable(now)`) rather than reading a clock — keeps
   entities pure; the `IClock` port lives at the use-case layer.
-- **Errors:** `core` throws typed `DomainError`s — `ValidationError`, `NotFoundError`,
-  `ConflictError`, `ForbiddenError` — each with a `code`. Never throw a bare `Error` for a domain
-  failure. The delivery layer maps `code` → HTTP status.
+- **Errors:** `core` throws typed `DomainError`s — `ValidationError` (400), `NotFoundError` (404),
+  `ConflictError` (409), `ForbiddenError` (403), `UnauthenticatedError` (401) — each with a `code`.
+  Never throw a bare `Error` for a domain failure. The delivery layer maps `code` → HTTP status.
 - **Cross-row invariants** (unique email, exactly-one-owner) cannot live on an entity — they go in
   the use-case, backstopped by a DB unique index that translates a collision into a `ConflictError`.
 - **Naming:** `flag.entity.ts` → `class Flag`; `rollout-percentage.vo.ts` → `class RolloutPercentage`;

@@ -106,7 +106,8 @@ core/src/
 │   ├── invitation/               Invitation + InvitationStatus
 │   ├── project/                   Project { id, organizationId, name }
 │   └── flag/                      Flag, FlagKey, RolloutPercentage, TargetingRule, bucketing
-└── use-cases/                     — [not built yet] by ACTION, one folder each
+├── use-cases/                     — by ACTION, one folder each (Flag slice built)
+└── lib/test-support/              in-memory fakes (test-only, not exported)
 ```
 
 > **`DOMAIN_MODEL.md` is the authority** for entity fields, invariants, and value objects. This
@@ -116,7 +117,7 @@ core/src/
 
 **SOLID in practice here:**
 
-- **SRP** — one use-case class per business operation (`ToggleFlagUseCase` doesn't also validate
+- **SRP** — one use-case class per business operation (`SetFlagEnabledUseCase` doesn't also validate
   targeting rules; that's `UpdateFlagRulesUseCase`'s job).
 - **OCP** — new targeting rule types extend a `TargetingRule` base/interface rather than adding
   branches to `EvaluateFlagUseCase`.
@@ -212,7 +213,7 @@ class CompositionRoot {
     this.flagRepository,
     this.organizationRepository,
   );
-  toggleFlagUseCase = new ToggleFlagUseCase(this.flagRepository);
+  setFlagEnabledUseCase = new SetFlagEnabledUseCase(this.flagRepository);
   evaluateFlagUseCase = new EvaluateFlagUseCase();
 
   // [v2] platform-admin use-cases (§9) — same repos, different application rules
@@ -283,13 +284,16 @@ function withAppHandlers(
 Route file stays thin — parse input, call the use-case via `composition`, map result to HTTP:
 
 ```typescript
-// app/api/projects/[projectId]/flags/[flagId]/toggle/route.ts
+// app/api/projects/[projectId]/flags/[flagId]/route.ts
 export const PATCH = withAppHandlers(
   async (req, ctx) => {
-    const flag = await composition.toggleFlagUseCase.execute({
+    const { enabled } = await req.json();
+    const flag = await composition.setFlagEnabledUseCase.execute({
+      organizationId: ctx.organizationId,
       flagId: ctx.params.flagId,
+      enabled,
     });
-    return NextResponse.json(flag);
+    return NextResponse.json(FlagPresenter.toResponse(flag));
   },
   { action: "manage", subject: "Flag" },
 );

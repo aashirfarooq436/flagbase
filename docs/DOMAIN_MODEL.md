@@ -55,12 +55,17 @@ packages/core/src/
 │   └── flag/               flag.entity, flag.repository, flag-key.vo,
 │                           rollout-percentage.vo, targeting-rule, bucketing,
 │                           evaluation-context
+├── use-cases/              by ACTION, one folder each (Flag slice built; see the app layer)
+│   └── use-case.ts         interface IUseCase<TInput, TOutput>
+├── lib/                    supporting/tooling — test-only, never exported
+│   └── test-support/       in-memory fakes: repositories, clock, id generator
 └── index.ts                the package's public surface
 ```
 
-`shared/` and `domain/` are honest peers, and `use-cases/` will be a third when it lands.
-`invitation/` is its own feature folder, not nested under `member/` — it's a distinct aggregate
-with its own lifecycle, and modeling it under membership would imply an ownership it doesn't have.
+`shared/`, `domain/`, and `use-cases/` are honest peers; `lib/` holds test-only tooling (pure, and
+never re-exported, so it doesn't affect core's purity). `invitation/` is its own feature folder,
+not nested under `member/` — it's a distinct aggregate with its own lifecycle, and modeling it
+under membership would imply an ownership it doesn't have.
 
 ---
 
