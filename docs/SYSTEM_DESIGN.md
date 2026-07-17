@@ -155,15 +155,18 @@ exactly where you'd look for it:
 
 ```
 infrastructure/src/
-├── mongoose/connection.ts          ensureConnection(uri) — cached, serverless-safe
-├── shared/mongo-errors.ts          maps Mongo code 11000 → domain ConflictError
-├── test-support/mongo-test-env.ts  in-process MongoDB for integration tests
-└── domain/                         mirrors core/domain 1:1 — per feature:
+├── lib/                            technical plumbing
+│   ├── mongoose/connection.ts      ensureConnection(uri) — cached, serverless-safe
+│   ├── mongoose/mongo-errors.ts    maps Mongo code 11000 → domain ConflictError
+│   └── test-support/               in-process MongoDB helper for integration tests
+└── persistence/                    mirrors core/domain 1:1 — per feature:
     <feature>/
       <feature>.model.ts            Mongoose schema (domain UUID stored as _id)
       <feature>.mapper.ts           document ↔ entity translation
       mongo-<feature>.repository.ts implements core's I<Feature>Repository
 ```
+
+Named `persistence/`, not `domain/` — the domain lives in `core`; this layer only persists it.
 
 > **`BACKEND_ARCHITECTURE.md` §4 is the authority** here. All six repositories are built and
 > integration-tested (`mongodb-memory-server`). Any denormalized fields (e.g. an organization
