@@ -5,3 +5,7 @@ packages:
 # esbuild is vitest's own dependency and needs its script to fetch/build a native binary.
 allowBuilds:
   esbuild: true
+  # argon2 is a native addon and compiles on install.
+  argon2: true
+  # mongodb-memory-server's postinstall can pre-fetch the Mongo binary.
+  mongodb-memory-server: true
