@@ -549,23 +549,24 @@ Steps 1–4 involve zero frameworks and hold all the actual thinking. If most of
   `IIdGenerator` port (`crypto.randomUUID` in infrastructure), and Mongo stores it as the document
   `_id`. No `ObjectId` anywhere; `core` never learns Mongo exists.
 - **Error handling — DECIDED (mapping pending).** `core` throws typed `DomainError`s
-  (`ValidationError` / `NotFoundError` / `ConflictError` / `ForbiddenError`), each with a `code`.
-  What's left is the delivery-layer table that maps `code` → HTTP status — built when routes are.
+  (`ValidationError` / `NotFoundError` / `ConflictError` / `ForbiddenError` / `UnauthenticatedError`),
+  each with a `code`. What's left is the delivery-layer table that maps `code` → HTTP status
+  (`VALIDATION_ERROR`→400, `NOT_FOUND`→404, `CONFLICT`→409, `FORBIDDEN`→403, `UNAUTHENTICATED`→401) —
+  built when routes are.
+- **Transactions — DECIDED + BUILT.** Unit-of-Work port (Shape A) in `core`, `MongoUnitOfWork` in
+  infrastructure; `CreateOrganization` and `AcceptInvitation` use it. See §5.
+- **Input validation — DECIDED.** Zod schemas at the route boundary, living in a shared
+  `packages/contracts` package. **Balanced**: Zod checks shape + a few UX-critical formats (email,
+  password length, rollout 0–100) for per-field 400s; the value objects remain the authoritative
+  guard (defense in depth). Tenant/actor context (`organizationId`, `userId`) comes from the session,
+  never the request body.
+- **Entities vs DTOs on the wire — DECIDED.** Use-cases return entities; a **presenter** in the
+  delivery layer maps entity → response DTO (flattens value objects and dates). DTO _types_ live in
+  `packages/contracts` (shared with the frontend); the presenter _functions_ live in the app (they
+  import `core`, so must never reach the frontend). Request DTOs are **decoupled** from use-case
+  `Input` types — the route bridges (validated body + context → `Input`). `packages/contracts` is
+  scaffolded with the flag slice as the pattern; other features follow when their routes are built.
 
 **Still open:**
 
-**Transactions — now v1-blocking.** Team management landing in v1 changed this from "not urgent."
-`CreateOrganizationUseCase` writes an `Organization` _and_ its owner `Member`; `AcceptInvitationUseCase`
-writes a `Member` and updates the `Invitation`. Both are multi-document writes that must not
-half-succeed. Handing a Mongo session to a use-case without leaking Mongoose into `core` needs a
-Unit-of-Work-style port. This is the first thing to resolve when the use-case layer starts.
-
-**Input validation placement.** Entities guard invariants, but something must reject a malformed
-JSON body before it reaches a constructor. Zod at the route boundary is the natural fit — but Zod
-cannot live in `core`, so the schema and the entity invariant risk stating the same rule twice.
-Worth deciding how much duplication is acceptable.
-
-**Entities or DTOs on the wire?** The §6 example shows a `FlagPresenter`, but this is not yet
-settled. Serializing entities directly couples the public API to the domain model — renaming an
-entity field silently breaks the dashboard (and, in v2, the SDK). Recommend routes map entity → DTO
-from `packages/contracts`, but it needs an explicit decision.
+_(none structural — remaining work is the app/delivery layer itself.)_

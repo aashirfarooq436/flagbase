@@ -167,16 +167,21 @@ the empty-`dependencies` rule is the only thing enforcing that now.
 
 ---
 
-## 8. Decisions still open — don't silently pick one
+## 8. Resolved architecture decisions (were open)
 
-- **Transactions / Unit-of-Work (v1-blocking).** `CreateOrganizationUseCase` and
-  `AcceptInvitationUseCase` each write two documents that must not half-succeed. Needs a UoW-style
-  port that doesn't leak Mongoose into `core`. Resolve before those use-cases.
-- **Input validation placement** (Zod at the route boundary vs. entity constructors — avoid stating
-  the same rule twice).
-- **Entities vs DTOs on the wire** (recommend routes map entity → DTO; not yet decided).
+- **Transactions / Unit-of-Work** — Shape A UoW port in `core`, `MongoUnitOfWork` in infra; used by
+  `CreateOrganization` + `AcceptInvitation`. Built.
+- **Input validation** — Zod at the route boundary, schemas in `packages/contracts`. **Balanced**:
+  Zod does shape + a few UX-critical formats; value objects stay the authoritative guard. Context
+  (`organizationId`/`userId`) comes from the session, never the body.
+- **Entities vs DTOs on the wire** — use-cases return entities; a **presenter** (delivery layer) maps
+  entity → DTO. DTO _types_ in `packages/contracts` (shared with frontend); presenter _functions_ in
+  the app. Request DTOs are **decoupled** from use-case `Input` — the route bridges. `contracts` is
+  scaffolded with the flag slice; replicate per feature when building its routes.
 
-When work hits one of these, surface it and get a decision — don't invent an answer.
+The backend (core, infrastructure, composition, contracts-flag-slice) is built and tested. Remaining
+work is the **app/delivery layer**. When a genuinely new decision arises, surface it — don't invent
+an answer.
 
 ---
 
