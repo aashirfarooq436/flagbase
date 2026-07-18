@@ -80,5 +80,6 @@ export type {
 } from "./features/flag/request";
 export type {
   FlagResponse,
+  TargetingRuleResponse,
   EvaluateFlagResponse,
 } from "./features/flag/response";

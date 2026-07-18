@@ -9,24 +9,19 @@ import {
 
 describe("createFlagRequestSchema", () => {
   it("accepts a minimal valid request and defaults description to empty", () => {
-    const result = createFlagRequestSchema.safeParse({
-      projectId: "project-1",
-      key: "dark-mode",
-    });
+    // projectId is NOT in the body — it comes from the URL (…/projects/[projectId]/flags).
+    const result = createFlagRequestSchema.safeParse({ key: "dark-mode" });
     expect(result.success).toBe(true);
     expect(result.success && result.data.description).toBe("");
   });
 
-  it("rejects a request missing projectId", () => {
-    expect(
-      createFlagRequestSchema.safeParse({ key: "dark-mode" }).success,
-    ).toBe(false);
+  it("rejects a request missing key", () => {
+    expect(createFlagRequestSchema.safeParse({}).success).toBe(false);
   });
 
   it("rejects an over-long description", () => {
     expect(
       createFlagRequestSchema.safeParse({
-        projectId: "p1",
         key: "k",
         description: "x".repeat(501),
       }).success,
@@ -37,8 +32,7 @@ describe("createFlagRequestSchema", () => {
     // Shape-only at the edge (balanced validation): "Dark Mode" passes Zod but the
     // FlagKey VO will reject it downstream.
     expect(
-      createFlagRequestSchema.safeParse({ projectId: "p1", key: "Dark Mode" })
-        .success,
+      createFlagRequestSchema.safeParse({ key: "Dark Mode" }).success,
     ).toBe(true);
   });
 });

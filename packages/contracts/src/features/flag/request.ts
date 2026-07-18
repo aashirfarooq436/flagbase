@@ -24,12 +24,12 @@ export const evaluationContextSchema = z.object({
 export type EvaluationContextDto = z.infer<typeof evaluationContextSchema>;
 
 /**
- * Client fields only — `organizationId` is NOT here. It comes from the authenticated
- * session, and the route adds it. `key` is checked for shape only (non-empty); the FlagKey
- * value object owns the real format rule (balanced validation).
+ * Client fields only — `organizationId` and `projectId` are NOT here. `organizationId` comes
+ * from the authenticated session and `projectId` from the URL (`…/projects/[projectId]/flags`);
+ * the route supplies both. `key` is checked for shape only (non-empty); the FlagKey value
+ * object owns the real format rule (balanced validation).
  */
 export const createFlagRequestSchema = z.object({
-  projectId: z.string().min(1),
   key: z.string().min(1),
   description: z.string().max(MAX_DESCRIPTION).default(""),
   defaultValue: z.boolean().optional(),
