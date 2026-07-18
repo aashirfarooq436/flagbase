@@ -4,10 +4,14 @@ import { createProjectRequestSchema } from "./request";
 
 describe("createProjectRequestSchema", () => {
   it("accepts a valid name", () => {
-    expect(createProjectRequestSchema.safeParse({ name: "API" }).success).toBe(true);
+    expect(createProjectRequestSchema.safeParse({ name: "API" }).success).toBe(
+      true,
+    );
   });
 
   it("rejects an empty name", () => {
-    expect(createProjectRequestSchema.safeParse({ name: "" }).success).toBe(false);
+    expect(createProjectRequestSchema.safeParse({ name: "" }).success).toBe(
+      false,
+    );
   });
 });

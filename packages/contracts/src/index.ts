@@ -78,4 +78,7 @@ export type {
   EvaluateFlagRequest,
   ListFlagsQuery,
 } from "./features/flag/request";
-export type { FlagResponse, EvaluateFlagResponse } from "./features/flag/response";
+export type {
+  FlagResponse,
+  EvaluateFlagResponse,
+} from "./features/flag/response";

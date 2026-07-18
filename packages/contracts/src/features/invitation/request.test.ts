@@ -34,7 +34,11 @@ describe("inviteMemberRequestSchema", () => {
 
 describe("invitationTokenRequestSchema", () => {
   it("requires a non-empty token", () => {
-    expect(invitationTokenRequestSchema.safeParse({ token: "abc" }).success).toBe(true);
-    expect(invitationTokenRequestSchema.safeParse({ token: "" }).success).toBe(false);
+    expect(
+      invitationTokenRequestSchema.safeParse({ token: "abc" }).success,
+    ).toBe(true);
+    expect(invitationTokenRequestSchema.safeParse({ token: "" }).success).toBe(
+      false,
+    );
   });
 });
