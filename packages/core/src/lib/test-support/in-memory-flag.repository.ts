@@ -5,10 +5,12 @@ import type { IFlagRepository } from "../../domain/flag/flag.repository";
 /**
  * An in-memory IFlagRepository for testing use-cases with zero infrastructure.
  *
- * Stores entities by reference, so a use-case that mutates then saves a flag is
- * reflected here — matching how the real Mongo repository round-trips. It does NOT
- * enforce the unique (projectId, key) index; that's the database's job and is tested
- * at the infrastructure layer. Use-cases check uniqueness themselves before saving.
+ * Stores entities by reference — unlike the Mongo repository, which rebuilds a fresh
+ * entity from a document on every read. The normal use-case path (load → mutate → save)
+ * behaves identically on both; the difference only shows if code mutates without saving
+ * or relies on read identity, which no use-case does. It also does NOT enforce the unique
+ * (projectId, key) index; that's the database's job and is tested at the infrastructure
+ * layer. Use-cases check uniqueness themselves before saving.
  */
 export class InMemoryFlagRepository implements IFlagRepository {
   private readonly store = new Map<string, Flag>();
