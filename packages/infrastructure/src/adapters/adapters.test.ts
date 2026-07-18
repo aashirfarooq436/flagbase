@@ -1,4 +1,5 @@
 import { Email } from "@flagbase/core";
+import type { Logger } from "@flagbase/shared/logger";
 import { describe, expect, it } from "vitest";
 
 import { Argon2PasswordHasher } from "./argon2-password-hasher";
@@ -76,7 +77,14 @@ describe("Argon2PasswordHasher", () => {
 describe("ConsoleEmailSender", () => {
   it("logs the invitation with its token and organization name", async () => {
     const lines: string[] = [];
-    const sender = new ConsoleEmailSender((message) => lines.push(message));
+    const capturing: Logger = {
+      debug() {},
+      info: (message) => lines.push(message),
+      warn() {},
+      error() {},
+      child: () => capturing,
+    };
+    const sender = new ConsoleEmailSender(capturing);
 
     await sender.sendInvitation(
       new Email("invitee@example.com"),

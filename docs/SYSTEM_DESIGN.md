@@ -3,6 +3,13 @@
 Companion to `PROJECT_BRIEF.md`. This document locks in the concrete structure: repo layout,
 class shapes, the API decorator chain, the frontend API client, and the SDK.
 
+> **App-layer note (2026-07-18):** the delivery/frontend design was reconsidered and detailed in
+> `APP_ARCHITECTURE.md`, which is now the **authority for the app layer** and supersedes §5–§6 and
+> the `apps/*/lib/` trees below where they differ. Key changes: folders are named by concern, not
+> tool — `lib/casl/` → **`lib/abilities/`**, and there is a shared **`packages/ui`** design system
+> (atomic shadcn components + tokens) plus shared tsconfig/eslint packages. State = React Query
+> (server) + Zustand (client); auth = JWT sessions behind a swappable `SessionManager` port.
+
 **The one invariant everything else is built around:** `core/` is pure. It imports nothing
 from outside itself — no Mongoose, no CASL, no React, no Next.js, no Node built-ins tied to a
 runtime. Every other layer exists to either implement something `core/` declared an interface

@@ -47,4 +47,4 @@ export { CryptoTokenGenerator } from "./adapters/crypto-token-generator";
 export { Sha256TokenHasher } from "./adapters/sha256-token-hasher";
 export { Argon2PasswordHasher } from "./adapters/argon2-password-hasher";
 export { ConsoleEmailSender } from "./adapters/console-email-sender";
-export type { Logger } from "./adapters/console-email-sender";
+export type { Logger } from "@flagbase/shared/logger";

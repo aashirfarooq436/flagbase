@@ -1,6 +1,5 @@
 import type { Email, IEmailSender } from "@flagbase/core";
-
-export type Logger = (message: string) => void;
+import { ConsoleLogger, type Logger } from "@flagbase/shared/logger";
 
 /**
  * A development IEmailSender that logs what it would send instead of sending it.
@@ -10,15 +9,23 @@ export type Logger = (message: string) => void;
  * for deployment — it's a single class implementing the same interface.
  */
 export class ConsoleEmailSender implements IEmailSender {
-  constructor(private readonly log: Logger = console.log) {}
+  private readonly logger: Logger;
+
+  constructor(
+    logger: Logger = new ConsoleLogger({
+      context: { adapter: "ConsoleEmailSender" },
+    }),
+  ) {
+    this.logger = logger;
+  }
 
   async sendInvitation(
     to: Email,
     token: string,
     organizationName: string,
   ): Promise<void> {
-    this.log(
-      `[email] Invitation to ${to.value} — join "${organizationName}". Token: ${token}`,
+    this.logger.info(
+      `Invitation to ${to.value} — join "${organizationName}". Token: ${token}`,
     );
   }
 }

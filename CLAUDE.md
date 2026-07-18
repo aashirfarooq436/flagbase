@@ -12,6 +12,7 @@ Design rationale lives in `docs/`, not here:
 
 - `docs/DOMAIN_MODEL.md` — entities, value objects, ports, invariants (the authority on the model)
 - `docs/BACKEND_ARCHITECTURE.md` — layers, import rules, request lifecycle (the authority on the backend)
+- `docs/APP_ARCHITECTURE.md` — the app/delivery layer: dashboard, shared packages, state, auth (the authority on the frontend; supersedes SYSTEM_DESIGN §5–§6)
 - `docs/SYSTEM_DESIGN.md` — full-stack + monorepo shape
 - `docs/PROJECT_BRIEF.md` — historical origin doc (banner-marked; superseded in places)
 

@@ -9,3 +9,5 @@ allowBuilds:
   argon2: true
   # mongodb-memory-server's postinstall can pre-fetch the Mongo binary.
   mongodb-memory-server: true
+  sharp: set this to true or false
+  unrs-resolver: set this to true or false
