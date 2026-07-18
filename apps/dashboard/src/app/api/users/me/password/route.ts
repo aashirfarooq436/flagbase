@@ -2,7 +2,7 @@ import { composition } from "@flagbase/composition";
 import { changePasswordRequestSchema } from "@flagbase/contracts";
 import { HttpStatus } from "@flagbase/shared/http";
 
-import { route } from "@/lib/route";
+import { route } from "@/lib/decorators";
 
 export const PUT = route({
   access: "user",

@@ -2,7 +2,7 @@ import { composition } from "@flagbase/composition";
 import { invitationTokenRequestSchema } from "@flagbase/contracts";
 
 import { toInvitationResponse } from "@/lib/presenters/invitation.presenter";
-import { route } from "@/lib/route";
+import { route } from "@/lib/decorators";
 
 export const POST = route({
   access: "user",

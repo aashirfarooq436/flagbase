@@ -5,19 +5,14 @@ import { HttpStatus } from "@flagbase/shared/http";
 import { type NextRequest, NextResponse } from "next/server";
 import type { z, ZodType } from "zod";
 
-import type { AppAbility, AppAction, AppSubject } from "./abilities";
-import {
-  type Handler,
-  type OrgContext,
-  type OrgHandler,
-  type UserHandler,
-  withAbility,
-  withAuth,
-  withDb,
-  withErrorHandling,
-  withOrganization,
-  withUser,
-} from "./decorators";
+import type { AppAbility, AppAction, AppSubject } from "../abilities";
+import type { Handler, OrgContext, OrgHandler, UserHandler } from "./types";
+import { withAbility } from "./with-ability";
+import { withAuth } from "./with-auth";
+import { withDb } from "./with-db";
+import { withErrorHandling } from "./with-error-handling";
+import { withOrganization } from "./with-organization";
+import { withUser } from "./with-user";
 
 type Access = "public" | "user" | "organization";
 

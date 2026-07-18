@@ -3,7 +3,7 @@ import { updateFlagRulesRequestSchema } from "@flagbase/contracts";
 import { z } from "zod";
 
 import { toFlagResponse } from "@/lib/presenters/flag.presenter";
-import { route } from "@/lib/route";
+import { route } from "@/lib/decorators";
 
 const paramsSchema = z.object({ flagId: z.string().min(1) });
 

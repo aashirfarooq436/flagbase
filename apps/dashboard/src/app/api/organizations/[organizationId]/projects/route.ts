@@ -3,7 +3,7 @@ import { createProjectRequestSchema } from "@flagbase/contracts";
 import { HttpStatus } from "@flagbase/shared/http";
 
 import { toProjectResponse } from "@/lib/presenters/project.presenter";
-import { route } from "@/lib/route";
+import { route } from "@/lib/decorators";
 
 export const GET = route({
   access: "organization",

@@ -2,7 +2,7 @@ import { composition } from "@flagbase/composition";
 import { HttpStatus } from "@flagbase/shared/http";
 import { z } from "zod";
 
-import { route } from "@/lib/route";
+import { route } from "@/lib/decorators";
 
 const paramsSchema = z.object({ invitationId: z.string().min(1) });
 

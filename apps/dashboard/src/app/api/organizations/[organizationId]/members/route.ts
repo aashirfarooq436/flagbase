@@ -1,7 +1,7 @@
 import { composition } from "@flagbase/composition";
 
 import { toMemberResponse } from "@/lib/presenters/member.presenter";
-import { route } from "@/lib/route";
+import { route } from "@/lib/decorators";
 
 export const GET = route({
   access: "organization",

@@ -2,7 +2,7 @@ import { composition } from "@flagbase/composition";
 import { renameOrganizationRequestSchema } from "@flagbase/contracts";
 
 import { toOrganizationResponse } from "@/lib/presenters/organization.presenter";
-import { route } from "@/lib/route";
+import { route } from "@/lib/decorators";
 
 export const GET = route({
   access: "organization",

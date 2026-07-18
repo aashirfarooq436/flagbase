@@ -2,7 +2,7 @@ import { composition } from "@flagbase/composition";
 import { updateProfileRequestSchema } from "@flagbase/contracts";
 
 import { toUserResponse } from "@/lib/presenters/user.presenter";
-import { route } from "@/lib/route";
+import { route } from "@/lib/decorators";
 
 export const GET = route({
   access: "user",

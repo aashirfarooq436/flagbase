@@ -4,7 +4,7 @@ import { type Role } from "@flagbase/core";
 import { HttpStatus } from "@flagbase/shared/http";
 
 import { toInvitationResponse } from "@/lib/presenters/invitation.presenter";
-import { route } from "@/lib/route";
+import { route } from "@/lib/decorators";
 
 export const GET = route({
   access: "organization",

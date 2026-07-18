@@ -4,7 +4,7 @@ import { HttpStatus } from "@flagbase/shared/http";
 import { z } from "zod";
 
 import { toProjectResponse } from "@/lib/presenters/project.presenter";
-import { route } from "@/lib/route";
+import { route } from "@/lib/decorators";
 
 const paramsSchema = z.object({ projectId: z.string().min(1) });
 

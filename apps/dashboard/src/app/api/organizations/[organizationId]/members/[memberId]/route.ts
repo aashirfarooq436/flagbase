@@ -5,7 +5,7 @@ import { HttpStatus } from "@flagbase/shared/http";
 import { z } from "zod";
 
 import { toMemberResponse } from "@/lib/presenters/member.presenter";
-import { route } from "@/lib/route";
+import { route } from "@/lib/decorators";
 
 const paramsSchema = z.object({ memberId: z.string().min(1) });
 
