@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import { Member } from "./member.entity";
-import { Role } from "./role.vo";
+import { Role } from "./role";
 
 const NOW = new Date("2026-07-17T00:00:00.000Z");
 

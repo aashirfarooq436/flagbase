@@ -37,8 +37,8 @@ export {
   Role,
   ROLE_PERMISSIONS,
   roleHasPermission,
-} from "./domain/member/role.vo";
-export type { Permission } from "./domain/member/role.vo";
+} from "./domain/member/role";
+export type { Permission } from "./domain/member/role";
 export type { IMemberRepository } from "./domain/member/member.repository";
 
 // Invitation

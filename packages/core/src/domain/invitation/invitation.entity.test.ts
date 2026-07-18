@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import { Email } from "../../shared/email.vo";
 import { ConflictError, ValidationError } from "../../shared/errors";
-import { Role } from "../member/role.vo";
+import { Role } from "../member/role";
 import { Invitation, InvitationStatus } from "./invitation.entity";
 
 const NOW = new Date("2026-07-17T00:00:00.000Z");

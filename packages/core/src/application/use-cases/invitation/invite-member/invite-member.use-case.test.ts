@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import { InvitationStatus } from "../../../../domain/invitation/invitation.entity";
 import { Member } from "../../../../domain/member/member.entity";
-import { Role } from "../../../../domain/member/role.vo";
+import { Role } from "../../../../domain/member/role";
 import { Organization } from "../../../../domain/organization/organization.entity";
 import { User } from "../../../../domain/user/user.entity";
 import { Email } from "../../../../shared/email.vo";

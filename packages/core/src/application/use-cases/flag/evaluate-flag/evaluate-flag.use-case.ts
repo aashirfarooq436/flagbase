@@ -1,7 +1,7 @@
 import type { EvaluationContext } from "../../../../domain/flag/evaluation-context";
 import type { IFlagRepository } from "../../../../domain/flag/flag.repository";
 import type { IProjectRepository } from "../../../../domain/project/project.repository";
-import { ForbiddenError, NotFoundError } from "../../../../shared/errors";
+import { loadFlagInOrganization } from "../../../shared/tenant-guard";
 import type { IUseCase } from "../../use-case";
 
 export type EvaluateFlagInput = {
@@ -26,15 +26,12 @@ export class EvaluateFlagUseCase implements IUseCase<
   ) {}
 
   async execute(input: EvaluateFlagInput): Promise<boolean> {
-    const flag = await this.flagRepository.findById(input.flagId);
-    if (flag === null) {
-      throw new NotFoundError(`Flag ${input.flagId} not found`);
-    }
-
-    const project = await this.projectRepository.findById(flag.projectId);
-    if (project === null || project.organizationId !== input.organizationId) {
-      throw new ForbiddenError("Flag does not belong to this organization");
-    }
+    const flag = await loadFlagInOrganization(
+      input.flagId,
+      input.organizationId,
+      this.flagRepository,
+      this.projectRepository,
+    );
 
     return flag.evaluate(input.context);
   }

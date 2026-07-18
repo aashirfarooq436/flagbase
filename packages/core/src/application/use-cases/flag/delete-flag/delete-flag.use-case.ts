@@ -1,6 +1,6 @@
 import type { IFlagRepository } from "../../../../domain/flag/flag.repository";
 import type { IProjectRepository } from "../../../../domain/project/project.repository";
-import { ForbiddenError, NotFoundError } from "../../../../shared/errors";
+import { loadFlagInOrganization } from "../../../shared/tenant-guard";
 import type { IUseCase } from "../../use-case";
 
 export type DeleteFlagInput = {
@@ -16,15 +16,12 @@ export class DeleteFlagUseCase implements IUseCase<DeleteFlagInput, void> {
   ) {}
 
   async execute(input: DeleteFlagInput): Promise<void> {
-    const flag = await this.flagRepository.findById(input.flagId);
-    if (flag === null) {
-      throw new NotFoundError(`Flag ${input.flagId} not found`);
-    }
-
-    const project = await this.projectRepository.findById(flag.projectId);
-    if (project === null || project.organizationId !== input.organizationId) {
-      throw new ForbiddenError("Flag does not belong to this organization");
-    }
+    await loadFlagInOrganization(
+      input.flagId,
+      input.organizationId,
+      this.flagRepository,
+      this.projectRepository,
+    );
 
     await this.flagRepository.delete(input.flagId);
   }

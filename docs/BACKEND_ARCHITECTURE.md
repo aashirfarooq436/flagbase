@@ -125,6 +125,9 @@ core/src/
 ├── application/                  — the use-case layer
 │   ├── ports/                    IClock, IIdGenerator, ITokenGenerator, IPasswordHasher,
 │   │                             ITokenHasher, IEmailSender, IUnitOfWork  (+ barrel)
+│   ├── shared/                   — application-layer helpers shared across use-cases
+│   │   └── tenant-guard.ts       load-and-verify tenant-boundary guards
+│   │                             (loadFlagInOrganization, loadProjectInOrganization, …)
 │   └── use-cases/                — grouped by feature (all v1 use-cases built + tested)
 │       ├── use-case.ts           interface IUseCase<TInput, TOutput> { execute(input) }
 │       ├── user/         sign-up  sign-in  update-profile  change-password
@@ -402,7 +405,7 @@ check) and scopes its response to exactly the one project the key belongs to.
 `core` defines what roles _mean_, as plain data, with no CASL import:
 
 ```typescript
-// core/domain/member/role.vo.ts
+// core/domain/member/role.ts
 enum Role {
   Owner = "owner",
   Admin = "admin",

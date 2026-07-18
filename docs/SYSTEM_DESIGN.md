@@ -132,7 +132,7 @@ core/src/
 
 ### 2.3 Role/Permission — where the CASL boundary sits
 
-`core/domain/member/role.vo.ts` defines what roles _mean_, as plain data — no CASL import:
+`core/domain/member/role.ts` defines what roles _mean_, as plain data — no CASL import:
 
 ```typescript
 enum Role {
@@ -412,8 +412,8 @@ anti-pattern the brief flagged for persistence-layer leakage, at the auth layer 
 core/domain/platform-admin/
 ├── platform-admin.entity.ts     class PlatformAdmin { id, email, role: PlatformRole }
 ├── platform-admin.repository.ts interface IPlatformAdminRepository
-└── platform-role.vo.ts          enum PlatformRole { SuperAdmin, Support } + permission table,
-                                   same shape as core/domain/member/role.vo.ts but a completely
+└── platform-role.ts          enum PlatformRole { SuperAdmin, Support } + permission table,
+                                   same shape as core/domain/member/role.ts but a completely
                                    separate vocabulary — PlatformRole permissions are about
                                    cross-tenant platform operations (`organization:list`,
                                    `organization:read`, later `organization:suspend`).

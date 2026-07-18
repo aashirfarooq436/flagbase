@@ -2,12 +2,9 @@ import { FlagKey } from "../../../../domain/flag/flag-key.vo";
 import { Flag } from "../../../../domain/flag/flag.entity";
 import type { IFlagRepository } from "../../../../domain/flag/flag.repository";
 import type { IProjectRepository } from "../../../../domain/project/project.repository";
-import {
-  ConflictError,
-  ForbiddenError,
-  NotFoundError,
-} from "../../../../shared/errors";
+import { ConflictError } from "../../../../shared/errors";
 import type { IClock, IIdGenerator } from "../../../ports";
+import { loadProjectInOrganization } from "../../../shared/tenant-guard";
 import type { IUseCase } from "../../use-case";
 
 export type CreateFlagInput = {
@@ -35,16 +32,11 @@ export class CreateFlagUseCase implements IUseCase<CreateFlagInput, Flag> {
   ) {}
 
   async execute(input: CreateFlagInput): Promise<Flag> {
-    const project = await this.projectRepository.findById(input.projectId);
-    if (project === null) {
-      throw new NotFoundError(`Project ${input.projectId} not found`);
-    }
-
-    // Tenant boundary: CASL (delivery) checked the actor's ROLE; this checks that the
-    // resource actually belongs to the actor's organization.
-    if (project.organizationId !== input.organizationId) {
-      throw new ForbiddenError("Project does not belong to this organization");
-    }
+    await loadProjectInOrganization(
+      input.projectId,
+      input.organizationId,
+      this.projectRepository,
+    );
 
     // Domain validation happens by constructing the value object.
     const key = new FlagKey(input.key);

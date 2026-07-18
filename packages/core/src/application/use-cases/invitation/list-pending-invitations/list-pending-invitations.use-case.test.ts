@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import { Invitation } from "../../../../domain/invitation/invitation.entity";
-import { Role } from "../../../../domain/member/role.vo";
+import { Role } from "../../../../domain/member/role";
 import { Email } from "../../../../shared/email.vo";
 import { InMemoryInvitationRepository } from "../../../../lib/test-support/in-memory-invitation.repository";
 import { ListPendingInvitationsUseCase } from "./list-pending-invitations.use-case";

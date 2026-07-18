@@ -1,8 +1,8 @@
 import type { Flag } from "../../../../domain/flag/flag.entity";
 import type { IFlagRepository } from "../../../../domain/flag/flag.repository";
 import type { IProjectRepository } from "../../../../domain/project/project.repository";
-import { ForbiddenError, NotFoundError } from "../../../../shared/errors";
 import type { IClock } from "../../../ports";
+import { loadFlagInOrganization } from "../../../shared/tenant-guard";
 import type { IUseCase } from "../../use-case";
 
 export type SetFlagEnabledInput = {
@@ -27,15 +27,12 @@ export class SetFlagEnabledUseCase implements IUseCase<
   ) {}
 
   async execute(input: SetFlagEnabledInput): Promise<Flag> {
-    const flag = await this.flagRepository.findById(input.flagId);
-    if (flag === null) {
-      throw new NotFoundError(`Flag ${input.flagId} not found`);
-    }
-
-    const project = await this.projectRepository.findById(flag.projectId);
-    if (project === null || project.organizationId !== input.organizationId) {
-      throw new ForbiddenError("Flag does not belong to this organization");
-    }
+    const flag = await loadFlagInOrganization(
+      input.flagId,
+      input.organizationId,
+      this.flagRepository,
+      this.projectRepository,
+    );
 
     const now = this.clock.now();
     if (input.enabled) {

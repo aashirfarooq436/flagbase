@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { Role } from "../../../../domain/member/role.vo";
+import { Role } from "../../../../domain/member/role";
 import { ValidationError } from "../../../../shared/errors";
 import { FakeClock } from "../../../../lib/test-support/fake-clock";
 import { FakeIdGenerator } from "../../../../lib/test-support/fake-id-generator";

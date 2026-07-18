@@ -1,7 +1,7 @@
 import type { Flag } from "../../../../domain/flag/flag.entity";
 import type { IFlagRepository } from "../../../../domain/flag/flag.repository";
 import type { IProjectRepository } from "../../../../domain/project/project.repository";
-import { ForbiddenError, NotFoundError } from "../../../../shared/errors";
+import { loadProjectInOrganization } from "../../../shared/tenant-guard";
 import type { IUseCase } from "../../use-case";
 
 export type ListFlagsInput = {
@@ -17,13 +17,11 @@ export class ListFlagsUseCase implements IUseCase<ListFlagsInput, Flag[]> {
   ) {}
 
   async execute(input: ListFlagsInput): Promise<Flag[]> {
-    const project = await this.projectRepository.findById(input.projectId);
-    if (project === null) {
-      throw new NotFoundError(`Project ${input.projectId} not found`);
-    }
-    if (project.organizationId !== input.organizationId) {
-      throw new ForbiddenError("Project does not belong to this organization");
-    }
+    await loadProjectInOrganization(
+      input.projectId,
+      input.organizationId,
+      this.projectRepository,
+    );
 
     return this.flagRepository.findByProjectId(input.projectId);
   }

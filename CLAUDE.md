@@ -59,6 +59,7 @@ packages/core/src/
 │                     member, invitation, project, flag)
 ├── application/      the use-case layer
 │   ├── ports/        ALL ports (IClock, IIdGenerator, hashers, IEmailSender, IUnitOfWork) + barrel
+│   ├── shared/       application-layer helpers shared across use-cases (tenant-guard)
 │   └── use-cases/    use-case.ts (IUseCase contract) + <feature>/<action>/ folders
 │                     grouped by feature (user, organization, member, invitation, project, flag)
 └── lib/              supporting/tooling — test-only, never exported (test-support/ fakes)

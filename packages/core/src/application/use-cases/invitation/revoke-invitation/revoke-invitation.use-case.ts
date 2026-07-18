@@ -1,6 +1,7 @@
 import type { Invitation } from "../../../../domain/invitation/invitation.entity";
 import type { IInvitationRepository } from "../../../../domain/invitation/invitation.repository";
-import { ForbiddenError, NotFoundError } from "../../../../shared/errors";
+import { NotFoundError } from "../../../../shared/errors";
+import { assertResourceInOrganization } from "../../../shared/tenant-guard";
 import type { IUseCase } from "../../use-case";
 
 export type RevokeInvitationInput = {
@@ -26,11 +27,11 @@ export class RevokeInvitationUseCase implements IUseCase<
       throw new NotFoundError(`Invitation ${input.invitationId} not found`);
     }
 
-    if (invitation.organizationId !== input.organizationId) {
-      throw new ForbiddenError(
-        "Invitation does not belong to this organization",
-      );
-    }
+    assertResourceInOrganization(
+      invitation,
+      input.organizationId,
+      "Invitation",
+    );
 
     invitation.revoke(); // throws ConflictError if not pending
     await this.invitationRepository.save(invitation);

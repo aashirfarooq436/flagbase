@@ -49,7 +49,7 @@ packages/core/src/
 ├── domain/
 │   ├── user/               user.entity, user.repository
 │   ├── organization/       organization.entity, organization.repository
-│   ├── member/             member.entity, member.repository, role.vo
+│   ├── member/             member.entity, member.repository, role
 │   ├── invitation/         invitation.entity, invitation.repository
 │   ├── project/            project.entity, project.repository
 │   └── flag/               flag.entity, flag.repository, flag-key.vo,

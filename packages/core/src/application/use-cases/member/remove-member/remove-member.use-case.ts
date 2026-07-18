@@ -1,5 +1,6 @@
 import type { IMemberRepository } from "../../../../domain/member/member.repository";
 import { ForbiddenError, NotFoundError } from "../../../../shared/errors";
+import { assertResourceInOrganization } from "../../../shared/tenant-guard";
 import type { IUseCase } from "../../use-case";
 
 export type RemoveMemberInput = {
@@ -23,9 +24,7 @@ export class RemoveMemberUseCase implements IUseCase<RemoveMemberInput, void> {
       throw new NotFoundError(`Member ${input.memberId} not found`);
     }
 
-    if (member.organizationId !== input.organizationId) {
-      throw new ForbiddenError("Member does not belong to this organization");
-    }
+    assertResourceInOrganization(member, input.organizationId, "Member");
 
     if (member.isOwner) {
       throw new ForbiddenError(

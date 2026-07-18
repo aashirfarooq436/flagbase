@@ -8,8 +8,8 @@
  */
 
 import { Entity } from "../../shared/entity";
-import type { Permission } from "./role.vo";
-import { Role, roleHasPermission } from "./role.vo";
+import type { Permission } from "./role";
+import { Role, roleHasPermission } from "./role";
 
 export type MemberProps = {
   id: string;

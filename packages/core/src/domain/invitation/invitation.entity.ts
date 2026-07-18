@@ -15,7 +15,7 @@
 import type { Email } from "../../shared/email.vo";
 import { Entity } from "../../shared/entity";
 import { ConflictError, ValidationError } from "../../shared/errors";
-import { Role } from "../member/role.vo";
+import { Role } from "../member/role";
 
 /**
  * Note the absence of `Expired`.

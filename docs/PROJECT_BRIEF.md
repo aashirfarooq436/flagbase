@@ -172,7 +172,7 @@ concept (`Org`/`Team`, naming TBD) above the flag-specific entities, because cus
 teams, not just individuals, and billing/plan/seat concepts will eventually hang off that
 tenant boundary.
 
-```
+```text
 User
 Org (tenant / customer account — naming and shape not finalized)
   └── Project (a customer's product/API — flags live under a project; also the unit an
@@ -245,7 +245,7 @@ consuming `core/`.
 
 ### 6.3 Layer breakdown
 
-```
+```text
 core/                          — framework-agnostic. No Next.js, no DB driver, no Vercel APIs.
 ├── entities/                  — plain classes/types representing domain concepts
 ├── value-objects/             — small validated types (e.g. RolloutPercentage, FlagKey)
@@ -334,7 +334,7 @@ produced the same architectural pattern this project intends to draw lessons fro
 tenancy layer (see §5.1 — this project's actual entities are not yet finalized and shouldn't
 be assumed identical to this reference). Key structure from that exercise:
 
-```
+```text
 core/entities/{user,team,member,invitation}.entity.ts   — normalized, minimal
 core/repositories/{...}.repository.ts                    — interfaces
 core/use-cases/{team,member,user}/...                     — e.g. InviteMemberUseCase

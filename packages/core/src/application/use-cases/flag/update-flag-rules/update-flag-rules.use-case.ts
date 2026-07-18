@@ -6,12 +6,9 @@ import {
   UserIdListRule,
 } from "../../../../domain/flag/targeting-rule";
 import type { IProjectRepository } from "../../../../domain/project/project.repository";
-import {
-  ForbiddenError,
-  NotFoundError,
-  ValidationError,
-} from "../../../../shared/errors";
+import { ValidationError } from "../../../../shared/errors";
 import type { IClock } from "../../../ports";
+import { loadFlagInOrganization } from "../../../shared/tenant-guard";
 import type { IUseCase } from "../../use-case";
 
 /** The wire shape of a targeting rule — primitives, discriminated by `type`. */
@@ -46,15 +43,12 @@ export class UpdateFlagRulesUseCase implements IUseCase<
   ) {}
 
   async execute(input: UpdateFlagRulesInput): Promise<Flag> {
-    const flag = await this.flagRepository.findById(input.flagId);
-    if (flag === null) {
-      throw new NotFoundError(`Flag ${input.flagId} not found`);
-    }
-
-    const project = await this.projectRepository.findById(flag.projectId);
-    if (project === null || project.organizationId !== input.organizationId) {
-      throw new ForbiddenError("Flag does not belong to this organization");
-    }
+    const flag = await loadFlagInOrganization(
+      input.flagId,
+      input.organizationId,
+      this.flagRepository,
+      this.projectRepository,
+    );
 
     const rules = input.targetingRules.map(toTargetingRule);
     const rollout = new RolloutPercentage(input.rolloutPercentage);

@@ -1,6 +1,6 @@
 import type { Member } from "../../domain/member/member.entity";
 import type { IMemberRepository } from "../../domain/member/member.repository";
-import { Role } from "../../domain/member/role.vo";
+import { Role } from "../../domain/member/role";
 
 /** An in-memory IMemberRepository for testing use-cases with zero infrastructure. */
 export class InMemoryMemberRepository implements IMemberRepository {

@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import { Member } from "../../../../domain/member/member.entity";
 import { Organization } from "../../../../domain/organization/organization.entity";
-import { Role } from "../../../../domain/member/role.vo";
+import { Role } from "../../../../domain/member/role";
 import { InMemoryMemberRepository } from "../../../../lib/test-support/in-memory-member.repository";
 import { InMemoryOrganizationRepository } from "../../../../lib/test-support/in-memory-organization.repository";
 import { ListMyOrganizationsUseCase } from "./list-my-organizations.use-case";

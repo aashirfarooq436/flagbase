@@ -1,7 +1,7 @@
 import { Invitation } from "../../../../domain/invitation/invitation.entity";
 import type { IInvitationRepository } from "../../../../domain/invitation/invitation.repository";
 import type { IMemberRepository } from "../../../../domain/member/member.repository";
-import type { Role } from "../../../../domain/member/role.vo";
+import type { Role } from "../../../../domain/member/role";
 import type { IOrganizationRepository } from "../../../../domain/organization/organization.repository";
 import type { IUserRepository } from "../../../../domain/user/user.repository";
 import { Email } from "../../../../shared/email.vo";

@@ -1,5 +1,5 @@
 import { Member } from "../../../../domain/member/member.entity";
-import { Role } from "../../../../domain/member/role.vo";
+import { Role } from "../../../../domain/member/role";
 import { Organization } from "../../../../domain/organization/organization.entity";
 import type { IClock, IIdGenerator } from "../../../ports";
 import type { IUnitOfWork } from "../../../ports/unit-of-work";

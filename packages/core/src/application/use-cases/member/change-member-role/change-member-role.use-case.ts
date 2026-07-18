@@ -1,7 +1,8 @@
 import type { Member } from "../../../../domain/member/member.entity";
 import type { IMemberRepository } from "../../../../domain/member/member.repository";
-import { Role } from "../../../../domain/member/role.vo";
+import { Role } from "../../../../domain/member/role";
 import { ForbiddenError, NotFoundError } from "../../../../shared/errors";
+import { assertResourceInOrganization } from "../../../shared/tenant-guard";
 import type { IUseCase } from "../../use-case";
 
 export type ChangeMemberRoleInput = {
@@ -30,9 +31,7 @@ export class ChangeMemberRoleUseCase implements IUseCase<
       throw new NotFoundError(`Member ${input.memberId} not found`);
     }
 
-    if (member.organizationId !== input.organizationId) {
-      throw new ForbiddenError("Member does not belong to this organization");
-    }
+    assertResourceInOrganization(member, input.organizationId, "Member");
 
     if (input.newRole === Role.Owner) {
       throw new ForbiddenError(

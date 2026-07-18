@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import { Member } from "../../../../domain/member/member.entity";
-import { Role } from "../../../../domain/member/role.vo";
+import { Role } from "../../../../domain/member/role";
 import { ForbiddenError, NotFoundError } from "../../../../shared/errors";
 import { InMemoryMemberRepository } from "../../../../lib/test-support/in-memory-member.repository";
 import { ChangeMemberRoleUseCase } from "./change-member-role.use-case";
