@@ -15,9 +15,10 @@ export type GetMembershipInput = {
  * turns into a 403. This is also the tenant boundary for org-scoped routes — a user with a
  * valid session but no membership in the requested org must not see it.
  */
-export class GetMembershipUseCase
-  implements IUseCase<GetMembershipInput, Member | null>
-{
+export class GetMembershipUseCase implements IUseCase<
+  GetMembershipInput,
+  Member | null
+> {
   constructor(private readonly memberRepository: IMemberRepository) {}
 
   async execute(input: GetMembershipInput): Promise<Member | null> {

@@ -14,9 +14,10 @@ export type GetCurrentUserInput = {
  * 401 (clear the cookie), not a 404 rendered to someone. Unlike GetOrganization — a
  * user-facing fetch where a missing row genuinely is a 404 — this is a session lookup.
  */
-export class GetCurrentUserUseCase
-  implements IUseCase<GetCurrentUserInput, User | null>
-{
+export class GetCurrentUserUseCase implements IUseCase<
+  GetCurrentUserInput,
+  User | null
+> {
   constructor(private readonly userRepository: IUserRepository) {}
 
   async execute(input: GetCurrentUserInput): Promise<User | null> {
