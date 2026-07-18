@@ -1,5 +1,6 @@
 import {
   ChangeMemberRoleUseCase,
+  GetMembershipUseCase,
   ListMembersUseCase,
   RemoveMemberUseCase,
 } from "@flagbase/core";
@@ -11,5 +12,6 @@ export function createMemberUseCases(deps: Dependencies) {
     changeRole: new ChangeMemberRoleUseCase(deps.memberRepository),
     remove: new RemoveMemberUseCase(deps.memberRepository),
     list: new ListMembersUseCase(deps.memberRepository),
+    getMembership: new GetMembershipUseCase(deps.memberRepository),
   };
 }

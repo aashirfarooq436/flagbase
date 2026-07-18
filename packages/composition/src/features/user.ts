@@ -1,5 +1,6 @@
 import {
   ChangePasswordUseCase,
+  GetCurrentUserUseCase,
   SignInUseCase,
   SignUpUseCase,
   UpdateProfileUseCase,
@@ -21,5 +22,6 @@ export function createUserUseCases(deps: Dependencies) {
       deps.userRepository,
       deps.passwordHasher,
     ),
+    getCurrent: new GetCurrentUserUseCase(deps.userRepository),
   };
 }
