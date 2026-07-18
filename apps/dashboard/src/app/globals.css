@@ -1,0 +1,11 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+/* Shared FlagBase design tokens (light + dark, @theme mappings, base layer). */
+@import "../../../../packages/ui/src/styles/globals.css";
+
+/*
+ * Tailwind v4 scans for class names per source file. The shared UI package lives outside
+ * this app's tree, so declare it as a source or its utility classes get purged from the build.
+ */
+@source "../../../../packages/ui/src/**/*.{ts,tsx}";
