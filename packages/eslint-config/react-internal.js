@@ -6,6 +6,8 @@ import pluginReactHooks from "eslint-plugin-react-hooks";
 import globals from "globals";
 import tseslint from "typescript-eslint";
 
+import { bestPractices } from "./base.js";
+
 /** Shared ESLint config for internal React component libraries (e.g. packages/ui). */
 export const config = [
   js.configs.recommended,
@@ -28,6 +30,7 @@ export const config = [
   {
     plugins: { onlyWarn },
   },
+  bestPractices,
   {
     ignores: ["dist/**"],
   },

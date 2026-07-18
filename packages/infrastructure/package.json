@@ -9,7 +9,8 @@
   "scripts": {
     "test": "vitest run",
     "test:watch": "vitest",
-    "check-types": "tsc --noEmit"
+    "check-types": "tsc --noEmit",
+    "lint": "eslint ."
   },
   "dependencies": {
     "@flagbase/core": "workspace:*",
@@ -21,6 +22,8 @@
     "@types/node": "^22.15.3",
     "mongodb-memory-server": "^10.1.0",
     "typescript": "5.9.2",
-    "vitest": "^3.2.4"
+    "vitest": "^3.2.4",
+    "@flagbase/eslint-config": "workspace:*",
+    "eslint": "^9"
   }
 }
