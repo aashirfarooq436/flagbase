@@ -61,10 +61,10 @@ function toResponse(error: unknown): NextResponse {
  * use-case, a Zod parse failure, a missing-env misconfig in `withDb`, or an unexpected crash —
  * into the mapped HTTP response. Because it wraps everything, the inner decorators just throw.
  */
-export function withErrorHandling<P>(handler: Handler<P>): Handler<P> {
-  return async (req, ctx) => {
+export function withErrorHandling(handler: Handler): Handler {
+  return async (request, context) => {
     try {
-      return await handler(req, ctx);
+      return await handler(request, context);
     } catch (error) {
       return toResponse(error);
     }

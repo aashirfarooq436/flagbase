@@ -11,12 +11,12 @@ import type { AuthedHandler, Handler } from "./types";
  * Everything an authenticated route needs about *who* is acting comes from here — never from
  * the request body.
  */
-export function withAuth<P>(handler: AuthedHandler<P>): Handler<P> {
-  return async (req, ctx) => {
+export function withAuth(handler: AuthedHandler): Handler {
+  return async (request, context) => {
     const session = await sessionManager.resolve();
     if (session === null) {
       throw new UnauthenticatedError("You must be signed in.");
     }
-    return handler(req, { ...ctx, userId: session.userId });
+    return handler(request, { ...context, userId: session.userId });
   };
 }
