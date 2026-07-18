@@ -88,7 +88,7 @@ apps/dashboard/           (code lives under src/ — src/app, src/lib)
 │   │       └── orgs/[orgId]/
 │   │           ├── layout.tsx     — app shell: sidebar, org switcher, topbar
 │   │           ├── page.tsx  members/  invitations/  settings/
-│   └── api/                       — route.ts handlers, wrapped in withAppHandlers
+│   └── api/                       — route.ts handlers, defined with the route() builder (§6.1)
 └── src/lib/
     ├── auth/          session-manager.ts (SessionManager + JwtSessionManager)   ← lifts to web-kit
     ├── abilities/     build-ability.ts (domain Role → CASL ability), policy vocabulary
@@ -182,8 +182,38 @@ reads `ROLE_PERMISSIONS` for a user's role in the active org and returns an `App
 **not a member ⇒ 403**. This is delivery-layer RBAC _and_ a tenant gate, complementing (defense in
 depth, not replacing) the tenant-guard already enforced inside the use-cases.
 
-The decorator chain itself (`withDb → withAuth → withAbility`, composed by `withAppHandlers`) is
-specified in `SYSTEM_DESIGN.md` §5 and unchanged except for the `casl → abilities` rename.
+### 6.1 API routes — the `route()` builder
+
+Every API route is a **declarative definition** via one builder, `route()` (`lib/route.ts`) — no
+inline plumbing, no magic status numbers, full identifier names:
+
+```ts
+export const POST = route({
+  access: "organization", action: "manage", subject: "Project",
+  body: createProjectRequestSchema, status: HttpStatus.Created,
+  handle: async ({ body, context }) =>
+    toProjectResponse(
+      await composition.project.create.execute({
+        organizationId: context.organizationId,
+        name: body.name,
+      }),
+    ),
+});
+```
+
+You declare the **access level** (`public` · `user` · `organization`), the input **schemas**
+(`body` / `query` / `params`), the success **`HttpStatus`**, and a **`handle`** that receives
+already-parsed input + a typed `context` and returns a DTO. The builder does the parsing, the
+decorator chain, the `NextResponse`, and `204`-on-`void`. `route()` composes the `with-*`
+decorators by access: `public` = `withErrorHandling ∘ withDb`; `user` = `+ withAuth + withUser`;
+`organization` = `+ withOrganization` (loads membership + builds the CASL ability) `+ withAbility`
+(when `action`/`subject` are set). **`HttpStatus`** — named codes, mirroring the error taxonomy —
+lives in `@flagbase/shared/http`.
+
+**The surface** (RESTful, org-scoped resources nested): `auth/{sign-in,sign-up,sign-out}` ·
+`users/me` (+`/password`) · `organizations[/[id]]` · `…/members[/[memberId]]` ·
+`…/invitations[/[invitationId]]` + `invitations/{accept,reject}` · `…/projects[/[projectId]]` ·
+`…/projects/[projectId]/flags[/[flagId]]` (+ `/rules`, `/evaluate`).
 
 ---
 
@@ -239,8 +269,12 @@ Onboard + manage organization — every screen maps to an existing use-case:
 - **Invitations** → `InviteMemberUseCase`, `ListPendingInvitationsUseCase`,
   `RevokeInvitationUseCase`, accept/reject.
 - **Org switcher** → `ListMyOrganizationsUseCase`.
+- **Projects** → create / list / get / rename / delete.
+- **Flags** → create / toggle (enabled) / update rules / evaluate ("test this rule") / delete.
 
-Flags/projects UI exists in the domain but is a later slice of v1; this phase is auth + org/team.
+**v1 is the complete web dashboard** — user, organization, project, and flag flows, all with UI
+(expanded 2026-07-19; flags/projects are no longer deferred). The **API routes for the whole
+surface are built** (§6.1); the remaining work is the UI (components + pages) per feature.
 
 ---
 
