@@ -249,27 +249,55 @@ than forcing it somewhere unrelated.
 
 ## 5. `packages/composition`
 
-The only place in the system where concrete classes get constructed.
+The only place in the system that names concrete classes. **Built** — the single module that
+imports `infrastructure` and wires the real Mongo repositories + port adapters + `MongoUnitOfWork`
+into every use-case. Use-cases are exposed grouped by feature (mirroring `use-cases/<feature>/`).
 
 ```typescript
-// [NOT BUILT YET] — illustrative shape; use-cases and the composition package don't exist.
 class CompositionRoot {
-  private organizationRepository = new MongoOrganizationRepository();
-  private flagRepository = new MongoFlagRepository();
+  // driven adapters (ports → concrete implementations)
+  private readonly flagRepository = new MongoFlagRepository();
+  private readonly unitOfWork = new MongoUnitOfWork();
+  private readonly idGenerator = new CryptoIdGenerator();
+  private readonly clock = new SystemClock();
+  private readonly passwordHasher = new Argon2PasswordHasher();
+  // …the other repos + adapters…
 
-  createFlagUseCase = new CreateFlagUseCase(
-    this.flagRepository,
-    this.organizationRepository,
-  );
-  setFlagEnabledUseCase = new SetFlagEnabledUseCase(this.flagRepository);
-  evaluateFlagUseCase = new EvaluateFlagUseCase();
-
-  // [v2] platform-admin use-cases wire to the SAME repositories, different application rules:
-  // listOrganizationsUseCase = new ListOrganizationsUseCase(this.organizationRepository);
+  // use-cases, grouped by feature
+  readonly flag = {
+    create: new CreateFlagUseCase(
+      this.projectRepository,
+      this.flagRepository,
+      this.idGenerator,
+      this.clock,
+    ),
+    setEnabled: new SetFlagEnabledUseCase(
+      this.flagRepository,
+      this.projectRepository,
+      this.clock,
+    ),
+    // …
+  };
+  readonly organization = {
+    create: new CreateOrganizationUseCase(
+      this.unitOfWork,
+      this.idGenerator,
+      this.clock,
+    ),
+    // …
+  };
+  // user, member, invitation, project…
 }
 
 export const composition = new CompositionRoot();
 ```
+
+Route handlers call `composition.flag.create.execute(input)` — never constructing a repository or
+use-case. The two multi-write use-cases (`organization.create`, `invitation.accept`) take the
+`MongoUnitOfWork`; everything else takes plain non-transactional repositories.
+
+No I/O happens at construction — repos and the Unit of Work only store references; the Mongo
+connection is established per request by `withDb`, not here.
 
 It's a shared package rather than living inside `apps/dashboard` because both apps wire against
 the same repositories. Duplicating it per app would create two places that can drift on how a
@@ -337,7 +365,7 @@ A route does exactly four things — parse input, call one use-case, map the res
 export const PATCH = withAppHandlers(
   async (req, ctx) => {
     const { enabled } = await req.json();
-    const flag = await composition.setFlagEnabledUseCase.execute({
+    const flag = await composition.flag.setEnabled.execute({
       organizationId: ctx.organizationId,
       flagId: ctx.params.flagId,
       enabled,
@@ -431,7 +459,7 @@ genuinely decoupled rather than nominally so.
 2. `withDb` → ensure Mongoose connection
 3. `withAuth` → resolve `User` from session, else 401
 4. `withAbility('manage', 'Flag')` → build CASL ability from domain `Role`, else 403
-5. Route parses input, calls `composition.setFlagEnabledUseCase.execute({ organizationId, flagId, enabled })`
+5. Route parses input, calls `composition.flag.setEnabled.execute({ organizationId, flagId, enabled })`
 6. Use-case loads the `Flag` through `IFlagRepository`, applies the rule, saves
 7. `MongoFlagRepository.save()` → `FlagMapper` entity→document → Mongoose → MongoDB
 8. Route maps the result to a response and returns

@@ -107,16 +107,15 @@ core/src/
 │   ├── project/                   Project { id, organizationId, name }
 │   └── flag/                      Flag, FlagKey, RolloutPercentage, TargetingRule, bucketing
 ├── application/                   — use-case layer
-│   ├── use-case.ts                IUseCase<In, Out>
 │   ├── ports/                     all ports (IClock, IIdGenerator, hashers, IEmailSender, IUnitOfWork)
-│   └── use-cases/                 by ACTION, one folder each
+│   └── use-cases/                 use-case.ts + grouped by feature (<feature>/<action>/)
 └── lib/test-support/              in-memory fakes (test-only, not exported)
 ```
 
 > **`DOMAIN_MODEL.md` is the authority** for entity fields, invariants, and value objects. This
 > is a locator only — auth is email + password (no OAuth); `invitation/` is its own feature
-> folder. The `core`/`infrastructure` layers are built and tested; `use-cases/` and the apps
-> are not.
+> folder. The `core`, `infrastructure`, and `composition` packages are all built and tested; only
+> the apps remain.
 
 **SOLID in practice here:**
 
@@ -291,7 +290,7 @@ Route file stays thin — parse input, call the use-case via `composition`, map 
 export const PATCH = withAppHandlers(
   async (req, ctx) => {
     const { enabled } = await req.json();
-    const flag = await composition.setFlagEnabledUseCase.execute({
+    const flag = await composition.flag.setEnabled.execute({
       organizationId: ctx.organizationId,
       flagId: ctx.params.flagId,
       enabled,
@@ -384,7 +383,7 @@ Notes:
 ## 8. Data flow summary
 
 **Write path (dashboard):** browser → `apiClient.flags.updateRules()` → `PATCH /api/.../flags/:id`
-→ `withDb → withAuth → withAbility('manage','Flag')` → route handler → `composition.updateFlagRulesUseCase.execute()`
+→ `withDb → withAuth → withAbility('manage','Flag')` → route handler → `composition.flag.updateRules.execute()`
 → `MongoFlagRepository.save()` → Mongoose → MongoDB.
 
 **Read path (SDK, in a customer's runtime):** `FlagBaseClient.initialize()` → `GET /api/sdk/projects/:id/rules`

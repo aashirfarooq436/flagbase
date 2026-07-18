@@ -18,6 +18,25 @@ importers:
         specifier: 5.9.2
         version: 5.9.2
 
+  packages/composition:
+    dependencies:
+      '@flagbase/core':
+        specifier: workspace:*
+        version: link:../core
+      '@flagbase/infrastructure':
+        specifier: workspace:*
+        version: link:../infrastructure
+    devDependencies:
+      '@types/node':
+        specifier: ^22.15.3
+        version: 22.20.1
+      typescript:
+        specifier: 5.9.2
+        version: 5.9.2
+      vitest:
+        specifier: ^3.2.4
+        version: 3.2.7(@types/node@22.20.1)
+
   packages/core:
     devDependencies:
       typescript:
