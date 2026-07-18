@@ -1,4 +1,15 @@
-import type { TargetingRuleDto } from "./request";
+/**
+ * A targeting rule as it appears in a response. Deliberately its OWN type rather than a
+ * reuse of the request-side `TargetingRuleDto`: the outbound shape must be free to diverge
+ * from what a client is allowed to send (e.g. a server-assigned rule id) without the
+ * inbound validation schema dictating the wire response. Same rationale as RoleDto vs
+ * assignableRoleSchema in shared/role.ts.
+ */
+export type TargetingRuleResponse = {
+  type: "user-id-list";
+  userIds: string[];
+  value: boolean;
+};
 
 /**
  * A flag on the wire — flattened and JSON-safe: value objects become primitives
@@ -11,7 +22,7 @@ export type FlagResponse = {
   key: string;
   description: string;
   enabled: boolean;
-  targetingRules: TargetingRuleDto[];
+  targetingRules: TargetingRuleResponse[];
   rolloutPercentage: number;
   defaultValue: boolean;
   createdAt: string;

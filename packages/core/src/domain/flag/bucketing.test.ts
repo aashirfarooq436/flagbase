@@ -147,11 +147,15 @@ describe("bucketOf", () => {
     // algorithm produces. If this test fails, the hash changed, and every existing
     // user of every flag has just been silently re-bucketed. That is only acceptable
     // as a deliberate, breaking decision (see the header of bucketing.ts).
+    //
+    // Hard-coded literals, NOT toMatchInlineSnapshot: a snapshot can be silently
+    // re-baselined with `vitest -u`, which is exactly the accident this canary exists
+    // to prevent. Changing these numbers must be a conscious, manual edit.
     it("produces the recorded buckets for known inputs", () => {
-      expect(bucketOf("user-1", "dark-mode")).toMatchInlineSnapshot(`58`);
-      expect(bucketOf("user-2", "dark-mode")).toMatchInlineSnapshot(`39`);
-      expect(bucketOf("user-1", "new-checkout")).toMatchInlineSnapshot(`63`);
-      expect(bucketOf("", "")).toMatchInlineSnapshot(`53`);
+      expect(bucketOf("user-1", "dark-mode")).toBe(58);
+      expect(bucketOf("user-2", "dark-mode")).toBe(39);
+      expect(bucketOf("user-1", "new-checkout")).toBe(63);
+      expect(bucketOf("", "")).toBe(53);
     });
   });
 });

@@ -37,7 +37,15 @@ export async function ensureConnection(uri: string): Promise<typeof mongoose> {
   if (!cache.promise) {
     // bufferCommands: false surfaces "not connected" as an immediate error instead of
     // silently queueing a query against a connection that never arrives.
-    cache.promise = mongoose.connect(uri, { bufferCommands: false });
+    //
+    // autoIndex: false disables Mongoose's implicit background index build. It's off by
+    // design, not by omission: a background build gives no guarantee the unique-index
+    // race backstops exist when the first writes land. The startup path builds them
+    // explicitly and awaited via ensureIndexes() (see lib/mongoose/indexes.ts).
+    cache.promise = mongoose.connect(uri, {
+      bufferCommands: false,
+      autoIndex: false,
+    });
   }
 
   cache.conn = await cache.promise;

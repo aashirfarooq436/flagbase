@@ -5,17 +5,15 @@ import {
   RolloutPercentage,
   UserIdListRule,
 } from "@flagbase/core";
-import { MongoMemoryServer } from "mongodb-memory-server";
-import mongoose from "mongoose";
-import { afterAll, afterEach, beforeAll, describe, expect, it } from "vitest";
+import { describe, expect, it } from "vitest";
 
+import { useMongoTestEnv } from "../../lib/test-support/mongo-test-env";
 import { FlagModel } from "./mongo-flag.model";
 import { MongoFlagRepository } from "./mongo-flag.repository";
 
 const NOW = new Date("2026-07-17T00:00:00.000Z");
 const LATER = new Date("2026-07-17T01:00:00.000Z");
 
-let mongod: MongoMemoryServer;
 const repository = new MongoFlagRepository();
 
 function makeFlag(overrides?: {
@@ -32,20 +30,9 @@ function makeFlag(overrides?: {
   });
 }
 
-beforeAll(async () => {
-  mongod = await MongoMemoryServer.create();
-  await mongoose.connect(mongod.getUri());
-  // Build indexes so the unique (projectId, key) constraint is actually enforced.
+// Build indexes so the unique (projectId, key) constraint is actually enforced.
+useMongoTestEnv(async () => {
   await FlagModel.init();
-});
-
-afterEach(async () => {
-  await FlagModel.deleteMany({});
-});
-
-afterAll(async () => {
-  await mongoose.disconnect();
-  await mongod.stop();
 });
 
 describe("MongoFlagRepository", () => {

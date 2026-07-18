@@ -7,7 +7,10 @@ import type { User } from "./user.entity";
  */
 export interface IUserRepository {
   findById(id: string): Promise<User | null>;
-  /** The account-linking lookup — see docs/DOMAIN_MODEL.md §4.3. */
+  /**
+   * Lookup by the login identifier. Email is the unique account key: sign-up uses this
+   * to reject a duplicate registration, sign-in uses it to find the account to verify.
+   */
   findByEmail(email: Email): Promise<User | null>;
   save(user: User): Promise<void>;
 }

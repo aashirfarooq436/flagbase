@@ -1,4 +1,5 @@
 export { ensureConnection } from "./lib/mongoose/connection";
+export { ensureIndexes } from "./lib/mongoose/indexes";
 
 // User
 export { UserModel } from "./persistence/user/mongo-user.model";

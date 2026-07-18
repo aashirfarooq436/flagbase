@@ -5,7 +5,7 @@
  *   email            Email             — invitee may not have an account yet
  *   role             Role              — never Owner
  *   tokenHash        string            — raw token lives only in the email
- *   status           InvitationStatus  — pending | accepted | revoked (never "expired")
+ *   status           InvitationStatus  — pending | accepted | revoked | rejected (never "expired")
  *   expiresAt        Date
  *   invitedByUserId  string
  *   createdAt        Date

@@ -140,7 +140,9 @@ export class Flag extends Entity {
   }
 
   get targetingRules(): readonly TargetingRule[] {
-    return this._targetingRules;
+    // Copy on the way out: `readonly` is compile-time only, so returning the live
+    // array would let a caller mutate flag state (and skip touch(now)) via a cast.
+    return [...this._targetingRules];
   }
 
   get rolloutPercentage(): RolloutPercentage {
