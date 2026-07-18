@@ -1,31 +1,29 @@
 import { composition } from "@flagbase/composition";
-import {
-  createOrganizationRequestSchema,
-  type OrganizationResponse,
-} from "@flagbase/contracts";
-import { type NextRequest, NextResponse } from "next/server";
+import { createOrganizationRequestSchema } from "@flagbase/contracts";
+import { HttpStatus } from "@flagbase/shared/http";
 
-import { withAppHandlers } from "@/lib/decorators";
 import { toOrganizationResponse } from "@/lib/presenters/organization.presenter";
+import { route } from "@/lib/route";
 
-export const POST = withAppHandlers(async (req: NextRequest, ctx) => {
-  const { name } = createOrganizationRequestSchema.parse(await req.json());
-  const organization = await composition.organization.create.execute({
-    name,
-    ownerUserId: ctx.userId,
-  });
-
-  const response: OrganizationResponse = toOrganizationResponse(organization);
-  return NextResponse.json(response, { status: 201 });
+export const GET = route({
+  access: "user",
+  handle: async ({ context }) => {
+    const organizations = await composition.organization.listMine.execute({
+      userId: context.userId,
+    });
+    return organizations.map(toOrganizationResponse);
+  },
 });
 
-export const GET = withAppHandlers(async (_req, ctx) => {
-  const organizations = await composition.organization.listMine.execute({
-    userId: ctx.userId,
-  });
-
-  const response: OrganizationResponse[] = organizations.map(
-    toOrganizationResponse,
-  );
-  return NextResponse.json(response);
+export const POST = route({
+  access: "user",
+  body: createOrganizationRequestSchema,
+  status: HttpStatus.Created,
+  handle: async ({ body, context }) => {
+    const organization = await composition.organization.create.execute({
+      name: body.name,
+      ownerUserId: context.userId,
+    });
+    return toOrganizationResponse(organization);
+  },
 });

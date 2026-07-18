@@ -1,9 +1,12 @@
-import { NextResponse } from "next/server";
+import { HttpStatus } from "@flagbase/shared/http";
 
 import { sessionManager } from "@/lib/auth/session-manager";
+import { route } from "@/lib/route";
 
-/** Clears the session cookie. Idempotent — safe to call with an already-expired session. */
-export async function POST() {
-  await sessionManager.destroy();
-  return new NextResponse(null, { status: 204 });
-}
+export const POST = route({
+  access: "public",
+  status: HttpStatus.NoContent,
+  handle: async () => {
+    await sessionManager.destroy();
+  },
+});
