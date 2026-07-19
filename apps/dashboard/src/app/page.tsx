@@ -26,5 +26,5 @@ export default async function RootPage() {
   if (!first) {
     redirect(routes.onboarding);
   }
-  redirect(routes.organization(first.id));
+  redirect(routes.organization(first.slug.value));
 }
