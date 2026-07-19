@@ -1,5 +1,6 @@
 import {
   CreateOrganizationUseCase,
+  GetOrganizationBySlugUseCase,
   GetOrganizationUseCase,
   ListMyOrganizationsUseCase,
   RenameOrganizationUseCase,
@@ -17,6 +18,7 @@ export function createOrganizationUseCases(deps: Dependencies) {
     ),
     rename: new RenameOrganizationUseCase(deps.organizationRepository),
     get: new GetOrganizationUseCase(deps.organizationRepository),
+    getBySlug: new GetOrganizationBySlugUseCase(deps.organizationRepository),
     listMine: new ListMyOrganizationsUseCase(
       deps.memberRepository,
       deps.organizationRepository,
