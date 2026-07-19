@@ -2,7 +2,7 @@ import type { ErrorResponse } from "@flagbase/contracts";
 
 import { ApiError } from "../types/api-error";
 
-type Method = "GET" | "POST" | "PATCH" | "DELETE";
+type Method = "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
 
 /**
  * Transport for the feature services: JSON fetch against `/api`, with error normalization.
@@ -17,6 +17,10 @@ export class BaseService {
 
   protected post<T>(path: string, body?: unknown): Promise<T> {
     return this.request<T>("POST", path, body);
+  }
+
+  protected put<T>(path: string, body?: unknown): Promise<T> {
+    return this.request<T>("PUT", path, body);
   }
 
   protected patch<T>(path: string, body?: unknown): Promise<T> {

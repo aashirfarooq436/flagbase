@@ -1,0 +1,1361 @@
+{
+  "info": {
+    "_postman_id": "b1a7c0de-f1a9-4b2c-9d3e-flagbasecol02",
+    "name": "FlagBase API",
+    "description": "FlagBase dashboard API (`apps/dashboard`) — full RESTful surface.\n\n**Auth is cookie-based.** Sign Up / Sign In set an httpOnly `flagbase_session` cookie; Postman's cookie jar stores and re-sends it, so there is no bearer token to copy.\n\n**Nested, org-scoped URLs.** Projects and flags live under an organization: `…/organizations/{orgId}/projects/{projectId}/flags/{flagId}`. IDs are captured into collection variables as you go (`orgId`, `projectId`, `flagId`, `memberId`, `invitationId`).\n\n**Before running:**\n1. `pnpm dashboard:dev` (http://localhost:3000).\n2. Mongo replica set reachable + `apps/dashboard/.env.local` (`MONGODB_URI`, `SESSION_SECRET`). Without them the API routes return 500.\n\n**Runner order** is arranged so a full top-to-bottom pass works: create → read → update flows for every resource, with the destructive deletes gathered in **Teardown** at the end. Two folders need a second actor and stay green via lenient checks: **Members → Change Role/Remove** target the sole owner (a policy error is expected), and **Invitation Actions** need a real token from the invite email/console log.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3000",
+      "type": "string"
+    },
+    {
+      "key": "name",
+      "value": "Aashir Farooq",
+      "type": "string"
+    },
+    {
+      "key": "password",
+      "value": "s3cur3-password",
+      "type": "string"
+    },
+    {
+      "key": "newPassword",
+      "value": "n3w-s3cur3-password",
+      "type": "string"
+    },
+    {
+      "key": "orgName",
+      "value": "Acme Inc",
+      "type": "string"
+    },
+    {
+      "key": "projectName",
+      "value": "Web App",
+      "type": "string"
+    },
+    {
+      "key": "flagKey",
+      "value": "new-checkout",
+      "type": "string"
+    },
+    {
+      "key": "inviteEmail",
+      "value": "teammate@example.com",
+      "type": "string"
+    },
+    {
+      "key": "email",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "orgId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "projectId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "flagId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "memberId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "invitationId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "invitationToken",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Auth",
+      "description": "Registration and login. Session lives in the `flagbase_session` cookie.",
+      "item": [
+        {
+          "name": "Sign Up",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Fresh unique email each run (email is unique).",
+                  "pm.collectionVariables.set('email', 'aashir+' + Date.now() + '@example.com');"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('201 Created', () => pm.response.to.have.status(201));",
+                  "pm.test('Returns the user, never a passwordHash', () => {",
+                  "  const b = pm.response.json();",
+                  "  pm.expect(b).to.have.property('id');",
+                  "  pm.expect(b.email).to.eql(pm.collectionVariables.get('email'));",
+                  "  pm.expect(b).to.not.have.property('passwordHash');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{email}}\",\n  \"name\": \"{{name}}\",\n  \"password\": \"{{password}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/sign-up",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "sign-up"
+              ]
+            },
+            "description": "Registers a new user and starts their session. 409 if the email is taken; 400 with field errors on invalid input. A unique email is generated per run."
+          }
+        },
+        {
+          "name": "Sign In",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('200 OK', () => pm.response.to.have.status(200));",
+                  "pm.test('Returns the signed-in user', () => pm.expect(pm.response.json()).to.have.property('id'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{email}}\",\n  \"password\": \"{{password}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/sign-in",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "sign-in"
+              ]
+            },
+            "description": "Signs in with the email from the last Sign Up. 401 with one generic message for both unknown-email and wrong-password (no account enumeration)."
+          }
+        }
+      ]
+    },
+    {
+      "name": "User",
+      "description": "The current user's own profile — `/api/users/me` (moved here from the old `/api/auth/me`).",
+      "item": [
+        {
+          "name": "Get Profile",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('200 OK', () => pm.response.to.have.status(200));",
+                  "pm.test('Is the current user', () => pm.expect(pm.response.json().email).to.eql(pm.collectionVariables.get('email')));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/users/me",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "users",
+                "me"
+              ]
+            },
+            "description": "Returns the authenticated user from the session cookie. 401 if not signed in."
+          }
+        },
+        {
+          "name": "Update Profile",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('200 OK', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Aashir Farooq (updated)\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/users/me",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "users",
+                "me"
+              ]
+            },
+            "description": "Updates the current user's display name."
+          }
+        },
+        {
+          "name": "Change Password",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('204 No Content', () => pm.response.to.have.status(204));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"currentPassword\": \"{{password}}\",\n  \"newPassword\": \"{{newPassword}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/users/me/change-password",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "users",
+                "me",
+                "change-password"
+              ]
+            },
+            "description": "Changes the password. 204 on success; 401/400 if the current password is wrong. A command (POST to a verb), not a resource update. Note: this changes the password for the rest of the run."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Organizations",
+      "description": "Org onboarding + management. All require a session.",
+      "item": [
+        {
+          "name": "List My Organizations",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('200 OK', () => pm.response.to.have.status(200));",
+                  "pm.test('Returns an array', () => pm.expect(pm.response.json()).to.be.an('array'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/organizations",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "organizations"
+              ]
+            },
+            "description": "Lists the organizations the current user belongs to."
+          }
+        },
+        {
+          "name": "Create Organization",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('201 Created', () => pm.response.to.have.status(201));",
+                  "pm.test('Captures orgId', () => {",
+                  "  const b = pm.response.json();",
+                  "  pm.expect(b).to.have.property('id');",
+                  "  pm.collectionVariables.set('orgId', b.id);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"{{orgName}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/organizations",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "organizations"
+              ]
+            },
+            "description": "Creates an org owned by the current user (onboarding). Saves the new id to `orgId`."
+          }
+        },
+        {
+          "name": "Get Organization",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('200 OK', () => pm.response.to.have.status(200));",
+                  "pm.test('Is the captured org', () => pm.expect(pm.response.json().id).to.eql(pm.collectionVariables.get('orgId')));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/organizations/{{orgId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "organizations",
+                "{{orgId}}"
+              ]
+            },
+            "description": "Fetches one organization the caller belongs to. 403 if not a member, 404 if unknown."
+          }
+        },
+        {
+          "name": "Rename Organization",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('200 OK', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Acme Inc (renamed)\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/organizations/{{orgId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "organizations",
+                "{{orgId}}"
+              ]
+            },
+            "description": "Renames the org. Requires the owner's ability (Admin/Member are read-only on the org in the current policy)."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Members",
+      "description": "Team roster. Change Role / Remove target the sole owner in a solo run, so a policy error is expected (lenient checks keep the run green).",
+      "item": [
+        {
+          "name": "List Members",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('200 OK', () => pm.response.to.have.status(200));",
+                  "const a = pm.response.json();",
+                  "pm.test('Returns an array', () => pm.expect(a).to.be.an('array'));",
+                  "if (Array.isArray(a) && a.length) pm.collectionVariables.set('memberId', a[0].id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/organizations/{{orgId}}/members",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "organizations",
+                "{{orgId}}",
+                "members"
+              ]
+            },
+            "description": "Lists the org's members. Captures the first member's id into `memberId`."
+          }
+        },
+        {
+          "name": "Change Member Role",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responds (owner target ⇒ policy error is expected)', () => pm.expect(pm.response.code).to.be.oneOf([200, 400, 403, 404]));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"role\": \"admin\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/organizations/{{orgId}}/members/{{memberId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "organizations",
+                "{{orgId}}",
+                "members",
+                "{{memberId}}"
+              ]
+            },
+            "description": "Sets a member's role (admin | member). Owner's role cannot be changed — targeting the owner returns a policy error. Assignable roles exclude owner."
+          }
+        },
+        {
+          "name": "Remove Member",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responds (owner target ⇒ policy error is expected)', () => pm.expect(pm.response.code).to.be.oneOf([204, 400, 403, 404, 409]));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/organizations/{{orgId}}/members/{{memberId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "organizations",
+                "{{orgId}}",
+                "members",
+                "{{memberId}}"
+              ]
+            },
+            "description": "Removes a member. Removing the last owner is rejected — targeting the sole owner returns a policy/conflict error."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Invitations",
+      "description": "Invite teammates and manage pending invites.",
+      "item": [
+        {
+          "name": "List Invitations",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('200 OK', () => pm.response.to.have.status(200));",
+                  "pm.test('Returns an array', () => pm.expect(pm.response.json()).to.be.an('array'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/organizations/{{orgId}}/invitations",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "organizations",
+                "{{orgId}}",
+                "invitations"
+              ]
+            },
+            "description": "Lists the org's invitations (pending + historical)."
+          }
+        },
+        {
+          "name": "Invite Member",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('201 Created', () => pm.response.to.have.status(201));",
+                  "pm.test('Captures invitationId; is pending', () => {",
+                  "  const b = pm.response.json();",
+                  "  pm.expect(b).to.have.property('id');",
+                  "  pm.expect(b.status).to.eql('pending');",
+                  "  pm.expect(b).to.not.have.property('token');",
+                  "  pm.collectionVariables.set('invitationId', b.id);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{inviteEmail}}\",\n  \"role\": \"member\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/organizations/{{orgId}}/invitations",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "organizations",
+                "{{orgId}}",
+                "invitations"
+              ]
+            },
+            "description": "Creates a pending invitation and emails a token (never returned on the wire — see the console log locally). Saves `invitationId`."
+          }
+        },
+        {
+          "name": "Revoke Invitation",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('204 No Content', () => pm.response.to.have.status(204));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/organizations/{{orgId}}/invitations/{{invitationId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "organizations",
+                "{{orgId}}",
+                "invitations",
+                "{{invitationId}}"
+              ]
+            },
+            "description": "Revokes the pending invitation captured above."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Invitation Actions",
+      "description": "Accept / reject an invite by its raw token (in the body, kept out of URLs/logs). Needs a real token from the invite email/console — set the `invitationToken` variable first. Lenient checks keep a solo run green.",
+      "item": [
+        {
+          "name": "Accept Invitation",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responds (set invitationToken for a real 200)', () => pm.expect(pm.response.code).to.be.oneOf([200, 201, 400, 404, 409]));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"token\": \"{{invitationToken}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/invitations/accept",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "invitations",
+                "accept"
+              ]
+            },
+            "description": "Accepts an invitation, adding the current user to the org. Set `invitationToken` from the invite email/console log."
+          }
+        },
+        {
+          "name": "Reject Invitation",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responds (set invitationToken for a real 200)', () => pm.expect(pm.response.code).to.be.oneOf([200, 204, 400, 404, 409]));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"token\": \"{{invitationToken}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/invitations/reject",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "invitations",
+                "reject"
+              ]
+            },
+            "description": "Rejects an invitation. Set `invitationToken` from the invite email/console log."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Projects",
+      "description": "Projects belong to an organization (nested URL).",
+      "item": [
+        {
+          "name": "List Projects",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('200 OK', () => pm.response.to.have.status(200));",
+                  "pm.test('Returns an array', () => pm.expect(pm.response.json()).to.be.an('array'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/organizations/{{orgId}}/projects",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "organizations",
+                "{{orgId}}",
+                "projects"
+              ]
+            },
+            "description": "Lists the org's projects."
+          }
+        },
+        {
+          "name": "Create Project",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('201 Created', () => pm.response.to.have.status(201));",
+                  "pm.test('Captures projectId', () => {",
+                  "  const b = pm.response.json();",
+                  "  pm.expect(b).to.have.property('id');",
+                  "  pm.collectionVariables.set('projectId', b.id);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"{{projectName}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/organizations/{{orgId}}/projects",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "organizations",
+                "{{orgId}}",
+                "projects"
+              ]
+            },
+            "description": "Creates a project in the org. Saves `projectId`."
+          }
+        },
+        {
+          "name": "Get Project",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('200 OK', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/organizations/{{orgId}}/projects/{{projectId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "organizations",
+                "{{orgId}}",
+                "projects",
+                "{{projectId}}"
+              ]
+            },
+            "description": "Fetches one project."
+          }
+        },
+        {
+          "name": "Rename Project",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('200 OK', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Web App (renamed)\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/organizations/{{orgId}}/projects/{{projectId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "organizations",
+                "{{orgId}}",
+                "projects",
+                "{{projectId}}"
+              ]
+            },
+            "description": "Renames the project."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Flags",
+      "description": "Feature flags belong to a project. Full lifecycle incl. the kill-switch, targeting rules, and the evaluation preview.",
+      "item": [
+        {
+          "name": "List Flags",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('200 OK', () => pm.response.to.have.status(200));",
+                  "pm.test('Returns an array', () => pm.expect(pm.response.json()).to.be.an('array'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/organizations/{{orgId}}/projects/{{projectId}}/flags",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "organizations",
+                "{{orgId}}",
+                "projects",
+                "{{projectId}}",
+                "flags"
+              ]
+            },
+            "description": "Lists the project's flags."
+          }
+        },
+        {
+          "name": "Create Flag",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('201 Created', () => pm.response.to.have.status(201));",
+                  "pm.test('Captures flagId; key matches', () => {",
+                  "  const b = pm.response.json();",
+                  "  pm.expect(b).to.have.property('id');",
+                  "  pm.expect(b.key).to.eql(pm.collectionVariables.get('flagKey'));",
+                  "  pm.collectionVariables.set('flagId', b.id);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"key\": \"{{flagKey}}\",\n  \"description\": \"Rollout of the new checkout flow\",\n  \"defaultValue\": false\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/organizations/{{orgId}}/projects/{{projectId}}/flags",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "organizations",
+                "{{orgId}}",
+                "projects",
+                "{{projectId}}",
+                "flags"
+              ]
+            },
+            "description": "Creates a flag in the project (projectId comes from the URL, not the body). Saves `flagId`."
+          }
+        },
+        {
+          "name": "Get Flag",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('200 OK', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/organizations/{{orgId}}/projects/{{projectId}}/flags/{{flagId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "organizations",
+                "{{orgId}}",
+                "projects",
+                "{{projectId}}",
+                "flags",
+                "{{flagId}}"
+              ]
+            },
+            "description": "Fetches one flag."
+          }
+        },
+        {
+          "name": "Toggle Enabled",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('200 OK', () => pm.response.to.have.status(200));",
+                  "pm.test('enabled = true', () => pm.expect(pm.response.json().enabled).to.eql(true));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"enabled\": true\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/organizations/{{orgId}}/projects/{{projectId}}/flags/{{flagId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "organizations",
+                "{{orgId}}",
+                "projects",
+                "{{projectId}}",
+                "flags",
+                "{{flagId}}"
+              ]
+            },
+            "description": "Flips the flag's kill switch (enabled). Targeting rules have their own sub-resource."
+          }
+        },
+        {
+          "name": "Update Targeting Rules",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('200 OK', () => pm.response.to.have.status(200));",
+                  "pm.test('rolloutPercentage = 50', () => pm.expect(pm.response.json().rolloutPercentage).to.eql(50));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"targetingRules\": [\n    {\n      \"type\": \"user-id-list\",\n      \"userIds\": [\n        \"user-123\",\n        \"user-456\"\n      ],\n      \"value\": true\n    }\n  ],\n  \"rolloutPercentage\": 50\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/organizations/{{orgId}}/projects/{{projectId}}/flags/{{flagId}}/rules",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "organizations",
+                "{{orgId}}",
+                "projects",
+                "{{projectId}}",
+                "flags",
+                "{{flagId}}",
+                "rules"
+              ]
+            },
+            "description": "Replaces the flag's targeting rules + rollout percentage (0–100)."
+          }
+        },
+        {
+          "name": "Evaluate Flag",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('200 OK', () => pm.response.to.have.status(200));",
+                  "pm.test('Returns a boolean value', () => pm.expect(pm.response.json().value).to.be.a('boolean'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"context\": {\n    \"key\": \"user-123\"\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/organizations/{{orgId}}/projects/{{projectId}}/flags/{{flagId}}/evaluate",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "organizations",
+                "{{orgId}}",
+                "projects",
+                "{{projectId}}",
+                "flags",
+                "{{flagId}}",
+                "evaluate"
+              ]
+            },
+            "description": "Server-side 'test this rule' preview for a given evaluation context. Returns { value }."
+          }
+        },
+        {
+          "name": "Delete Flag",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('204 No Content', () => pm.response.to.have.status(204));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/organizations/{{orgId}}/projects/{{projectId}}/flags/{{flagId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "organizations",
+                "{{orgId}}",
+                "projects",
+                "{{projectId}}",
+                "flags",
+                "{{flagId}}"
+              ]
+            },
+            "description": "Deletes the flag."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Teardown",
+      "description": "Destructive cleanup, last so a full Collection Run leaves nothing behind.",
+      "item": [
+        {
+          "name": "Delete Project",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('204 No Content', () => pm.response.to.have.status(204));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/organizations/{{orgId}}/projects/{{projectId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "organizations",
+                "{{orgId}}",
+                "projects",
+                "{{projectId}}"
+              ]
+            },
+            "description": "Deletes the project created above (and any remaining flags under it)."
+          }
+        },
+        {
+          "name": "Sign Out",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('204 No Content', () => pm.response.to.have.status(204));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/sign-out",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "sign-out"
+              ]
+            },
+            "description": "Clears the session cookie. Idempotent — safe with no/expired session."
+          }
+        }
+      ]
+    }
+  ]
+}

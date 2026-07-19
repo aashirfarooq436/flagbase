@@ -10,6 +10,6 @@ export function useUser() {
   const api = useApi();
   return useQuery({
     queryKey: authKeys.me,
-    queryFn: () => api.auth.me(),
+    queryFn: () => api.user.getProfile(),
   });
 }

@@ -4,7 +4,9 @@ import { HttpStatus } from "@flagbase/shared/http";
 
 import { route } from "@/lib/decorators";
 
-export const PUT = route({
+// A command, not a resource update: non-idempotent (the current password stops matching after
+// the first call) and precondition-carrying — so POST to a verb, like the other commands.
+export const POST = route({
   access: "user",
   body: changePasswordRequestSchema,
   status: HttpStatus.NoContent,
