@@ -9,5 +9,7 @@ allowBuilds:
   argon2: true
   # mongodb-memory-server's postinstall can pre-fetch the Mongo binary.
   mongodb-memory-server: true
-  sharp: set this to true or false
-  unrs-resolver: set this to true or false
+  # sharp is Next.js's image optimizer; its install script selects the platform binary.
+  sharp: true
+  # unrs-resolver is a native resolver pulled in by the ESLint import tooling.
+  unrs-resolver: true
