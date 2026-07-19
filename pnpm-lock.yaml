@@ -84,9 +84,6 @@ importers:
       '@flagbase/eslint-config':
         specifier: workspace:*
         version: link:../../packages/eslint-config
-      '@flagbase/typescript-config':
-        specifier: workspace:*
-        version: link:../../packages/typescript-config
       '@tailwindcss/postcss':
         specifier: ^4
         version: 4.3.3
@@ -249,9 +246,6 @@ importers:
       '@flagbase/eslint-config':
         specifier: workspace:*
         version: link:../eslint-config
-      '@flagbase/typescript-config':
-        specifier: workspace:*
-        version: link:../typescript-config
       eslint:
         specifier: ^9
         version: 9.39.5(jiti@2.7.0)
@@ -261,8 +255,6 @@ importers:
       vitest:
         specifier: ^3.2.4
         version: 3.2.7(@types/node@22.20.1)(jiti@2.7.0)(lightningcss@1.32.0)
-
-  packages/typescript-config: {}
 
   packages/ui:
     dependencies:
@@ -306,9 +298,6 @@ importers:
       '@flagbase/eslint-config':
         specifier: workspace:*
         version: link:../eslint-config
-      '@flagbase/typescript-config':
-        specifier: workspace:*
-        version: link:../typescript-config
       '@types/react':
         specifier: ^19
         version: 19.2.17

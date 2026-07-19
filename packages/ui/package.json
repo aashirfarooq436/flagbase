@@ -26,7 +26,6 @@
     "zod": "^3.25.76"
   },
   "devDependencies": {
-    "@flagbase/typescript-config": "workspace:*",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "tailwindcss": "^4",
