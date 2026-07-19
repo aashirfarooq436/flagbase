@@ -3,10 +3,18 @@
   "private": true,
   "scripts": {
     "build": "turbo run build",
-    "dev": "turbo run dev",
+    "test": "turbo run test",
     "lint": "turbo run lint",
-    "format": "prettier --write \"**/*.{ts,tsx,md}\"",
-    "check-types": "turbo run check-types"
+    "lint:fix": "turbo run lint -- --fix",
+    "check-types": "turbo run check-types",
+    "format": "prettier --write \"**/*.{ts,tsx,md,json,css}\"",
+    "format:check": "prettier --check \"**/*.{ts,tsx,md,json,css}\"",
+    "core:test": "pnpm --filter @flagbase/core test",
+    "infra:test": "pnpm --filter @flagbase/infrastructure test",
+    "composition:test": "pnpm --filter @flagbase/composition test",
+    "contracts:test": "pnpm --filter @flagbase/contracts test",
+    "shared:test": "pnpm --filter @flagbase/shared test",
+    "dashboard:dev": "pnpm --filter @flagbase/dashboard dev"
   },
   "devDependencies": {
     "prettier": "^3.7.4",

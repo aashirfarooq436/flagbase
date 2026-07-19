@@ -1,0 +1,11 @@
+{
+  // Format on save — Prettier owns formatting.
+  "editor.formatOnSave": true,
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "prettier.prettierPath": "./node_modules/prettier",
+
+  // On save, also apply ESLint's auto-fixes (import ordering, unused-import pruning, etc.).
+  "editor.codeActionsOnSave": {
+    "source.fixAll.eslint": "explicit"
+  }
+}

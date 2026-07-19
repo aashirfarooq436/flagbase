@@ -1,0 +1,22 @@
+{
+  "name": "@flagbase/core",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "check-types": "tsc --noEmit",
+    "lint": "eslint ."
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "typescript": "5.9.2",
+    "vitest": "^3.2.4",
+    "@flagbase/eslint-config": "workspace:*",
+    "eslint": "^9"
+  }
+}

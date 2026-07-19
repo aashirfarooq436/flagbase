@@ -1,5 +1,18 @@
 # Project Brief
 
+> **Status — historical origin document (as of 2026-07-17).** This captures the _original_
+> thinking and business rationale, which still hold. Several specifics have since been superseded;
+> where this doc and the others disagree, the others win:
+>
+> - **v1 scope narrowed.** v1 is control-plane only (backend + dashboard) and is a _learning
+>   milestone, not a release_. The npm SDK, the platform-admin app, and multi-environment/
+>   multivariate/audit are all **v2**. (This brief's §4.1 still calls the SDK first-class-in-v1 —
+>   no longer true.) See `SYSTEM_DESIGN.md` §0.
+> - **Auth simplified.** Email + password only. No Google/OAuth, no email verification.
+> - **Naming.** The tenant entity is `Organization` (not `Org`).
+> - **Live docs:** `SYSTEM_DESIGN.md` (full-stack + monorepo), `BACKEND_ARCHITECTURE.md` (backend
+>   layers/rules), `DOMAIN_MODEL.md` (entities, invariants). Those reflect the built code.
+
 ## 1. Purpose of this document
 
 This is a context-transfer document for a solo side project. Paste this into a new Claude
@@ -67,8 +80,8 @@ Staging/preview environments answer "does this code work." They do **not** answe
   scattered `if (user.plan === 'pro')` checks throughout a codebase becomes unmanageable;
   centralizing it as a flag/rule is more maintainable and auditable.
 
-**The mental model:** staging tests whether code *works*. Feature flags control who
-*experiences* code that's already confirmed to work, and how much blast radius a mistake has
+**The mental model:** staging tests whether code _works_. Feature flags control who
+_experiences_ code that's already confirmed to work, and how much blast radius a mistake has
 if the team is wrong. Different axis entirely.
 
 ### 3.3 Target buyer
@@ -91,7 +104,7 @@ architecturally sound MVP.
 
 This is not just a dashboard with an API. It is a **two-part product**:
 
-1. **An npm package (the SDK)** — installed by a customer into *their own* repo
+1. **An npm package (the SDK)** — installed by a customer into _their own_ repo
    (`npm install <sdk-name>`). It runs inside the customer's own server/edge/client runtime,
    evaluates flags locally against rules it has fetched/cached, and reports evaluation
    context back. This is the thing that actually gets embedded in other people's codebases —
@@ -124,8 +137,8 @@ runtime assumptions.
 
 ### 4.2 v2+ (explicitly deferred)
 
-- Multiple environments per project (dev/staging/prod), where the flag *definition* is
-  shared but its *rules/values* differ per environment.
+- Multiple environments per project (dev/staging/prod), where the flag _definition_ is
+  shared but its _rules/values_ differ per environment.
 - Multivariate flag values (string/number/JSON, not just boolean).
 - Full audit log of evaluations and rule changes.
 - More advanced targeting (attribute-based rules beyond simple userId/percentage — e.g.
@@ -159,7 +172,7 @@ concept (`Org`/`Team`, naming TBD) above the flag-specific entities, because cus
 teams, not just individuals, and billing/plan/seat concepts will eventually hang off that
 tenant boundary.
 
-```
+```text
 User
 Org (tenant / customer account — naming and shape not finalized)
   └── Project (a customer's product/API — flags live under a project; also the unit an
@@ -197,7 +210,7 @@ If this logic is written as a plain TypeScript function/module with zero framewo
 imports, it can be reused unmodified across all of the above — and literally re-exported by
 the npm package itself. This is the practical, provable test of whether the Clean Architecture
 domain layer is actually decoupled, rather than just organized into folders that look
-decoupled: the SDK package *is* a second consumer of `core/`, in a different process, on a
+decoupled: the SDK package _is_ a second consumer of `core/`, in a different process, on a
 different machine, and it must work without modification.
 
 **Percentage rollout specifically** requires deterministic hashing (e.g. hash of
@@ -232,7 +245,7 @@ consuming `core/`.
 
 ### 6.3 Layer breakdown
 
-```
+```text
 core/                          — framework-agnostic. No Next.js, no DB driver, no Vercel APIs.
 ├── entities/                  — plain classes/types representing domain concepts
 ├── value-objects/             — small validated types (e.g. RolloutPercentage, FlagKey)
@@ -321,7 +334,7 @@ produced the same architectural pattern this project intends to draw lessons fro
 tenancy layer (see §5.1 — this project's actual entities are not yet finalized and shouldn't
 be assumed identical to this reference). Key structure from that exercise:
 
-```
+```text
 core/entities/{user,team,member,invitation}.entity.ts   — normalized, minimal
 core/repositories/{...}.repository.ts                    — interfaces
 core/use-cases/{team,member,user}/...                     — e.g. InviteMemberUseCase

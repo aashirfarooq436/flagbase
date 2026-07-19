@@ -1,0 +1,26 @@
+{
+  "name": "@flagbase/composition",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "check-types": "tsc --noEmit",
+    "lint": "eslint ."
+  },
+  "dependencies": {
+    "@flagbase/core": "workspace:*",
+    "@flagbase/infrastructure": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/node": "^22.15.3",
+    "typescript": "5.9.2",
+    "vitest": "^3.2.4",
+    "@flagbase/eslint-config": "workspace:*",
+    "eslint": "^9"
+  }
+}

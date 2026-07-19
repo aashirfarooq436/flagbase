@@ -1,0 +1,13 @@
+{
+  "id": "e1a7c0de-f1a9-4b2c-9d3e-flagbaseenv02",
+  "name": "FlagBase — Local",
+  "values": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3000",
+      "type": "default",
+      "enabled": true
+    }
+  ],
+  "_postman_variable_scope": "environment"
+}
