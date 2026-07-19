@@ -28,13 +28,11 @@ import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 
 import { useMyRole, useOrganization, useRenameOrganization } from "@/lib/hooks";
+import { useCurrentOrganization } from "@/lib/providers";
 import { getErrorMessage } from "@/lib/utils/get-error-message";
 
-export function RenameOrganizationForm({
-  organizationId,
-}: {
-  organizationId: string;
-}) {
+export function RenameOrganizationForm() {
+  const { id: organizationId } = useCurrentOrganization();
   const { data: organization } = useOrganization(organizationId);
   const renameOrganization = useRenameOrganization(organizationId);
   const canManage = useMyRole(organizationId) === "owner";

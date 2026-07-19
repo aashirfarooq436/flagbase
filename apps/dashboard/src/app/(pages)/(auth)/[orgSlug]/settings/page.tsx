@@ -1,11 +1,6 @@
 import { RenameOrganizationForm } from "@/components/organization/rename-organization-form";
 
-export default async function SettingsPage({
-  params,
-}: {
-  params: Promise<{ orgId: string }>;
-}) {
-  const { orgId } = await params;
+export default function SettingsPage() {
   return (
     <div className="max-w-2xl space-y-6">
       <div className="space-y-1">
@@ -14,7 +9,7 @@ export default async function SettingsPage({
           Manage this organization.
         </p>
       </div>
-      <RenameOrganizationForm organizationId={orgId} />
+      <RenameOrganizationForm />
     </div>
   );
 }

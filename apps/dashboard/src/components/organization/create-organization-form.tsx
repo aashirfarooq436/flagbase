@@ -36,7 +36,7 @@ export function CreateOrganizationForm() {
   function onSubmit(values: CreateOrganizationRequest) {
     createOrganization.mutate(values, {
       onSuccess: (organization) =>
-        router.push(routes.organization(organization.id)),
+        router.push(routes.organization(organization.slug)),
       onError: (error) => toast.error(getErrorMessage(error)),
     });
   }

@@ -1,11 +1,6 @@
 import { MemberTable } from "@/components/member/member-table";
 
-export default async function MembersPage({
-  params,
-}: {
-  params: Promise<{ orgId: string }>;
-}) {
-  const { orgId } = await params;
+export default function MembersPage() {
   return (
     <div className="space-y-6">
       <div className="space-y-1">
@@ -14,7 +9,7 @@ export default async function MembersPage({
           People in this organization.
         </p>
       </div>
-      <MemberTable organizationId={orgId} />
+      <MemberTable />
     </div>
   );
 }

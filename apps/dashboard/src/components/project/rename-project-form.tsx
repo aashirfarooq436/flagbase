@@ -28,15 +28,11 @@ import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 
 import { useMyRole, useProject, useRenameProject } from "@/lib/hooks";
+import { useCurrentOrganization } from "@/lib/providers";
 import { getErrorMessage } from "@/lib/utils/get-error-message";
 
-export function RenameProjectForm({
-  organizationId,
-  projectId,
-}: {
-  organizationId: string;
-  projectId: string;
-}) {
+export function RenameProjectForm({ projectId }: { projectId: string }) {
+  const { id: organizationId } = useCurrentOrganization();
   const { data: project } = useProject(organizationId, projectId);
   const renameProject = useRenameProject(organizationId);
   const role = useMyRole(organizationId);

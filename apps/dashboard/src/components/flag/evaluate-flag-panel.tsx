@@ -16,17 +16,17 @@ import { useState } from "react";
 import { toast } from "sonner";
 
 import { useEvaluateFlag } from "@/lib/hooks";
+import { useCurrentOrganization } from "@/lib/providers";
 import { getErrorMessage } from "@/lib/utils/get-error-message";
 
 export function EvaluateFlagPanel({
-  organizationId,
   projectId,
   flagId,
 }: {
-  organizationId: string;
   projectId: string;
   flagId: string;
 }) {
+  const { id: organizationId } = useCurrentOrganization();
   const [key, setKey] = useState("");
   const [result, setResult] = useState<boolean | null>(null);
   const evaluate = useEvaluateFlag(organizationId, projectId, flagId);

@@ -30,13 +30,11 @@ import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 
 import { useCreateProject, useMyRole } from "@/lib/hooks";
+import { useCurrentOrganization } from "@/lib/providers";
 import { getErrorMessage } from "@/lib/utils/get-error-message";
 
-export function CreateProjectDialog({
-  organizationId,
-}: {
-  organizationId: string;
-}) {
+export function CreateProjectDialog() {
+  const { id: organizationId } = useCurrentOrganization();
   const [open, setOpen] = useState(false);
   const createProject = useCreateProject(organizationId);
   const role = useMyRole(organizationId);

@@ -14,19 +14,18 @@ import { useRouter } from "next/navigation";
 
 import { routes } from "@/lib/constants/routes";
 import { useMyOrganizations } from "@/lib/hooks";
+import { useCurrentOrganization } from "@/lib/providers";
 
-export function OrgSwitcher({ currentOrgId }: { currentOrgId: string }) {
+export function OrgSwitcher() {
   const router = useRouter();
+  const { id: currentOrgId, name: currentName } = useCurrentOrganization();
   const { data: organizations } = useMyOrganizations();
-  const current = organizations?.find((org) => org.id === currentOrgId);
 
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button variant="outline" className="w-56 justify-between gap-2">
-          <span className="truncate">
-            {current?.name ?? "Select organization"}
-          </span>
+          <span className="truncate">{currentName}</span>
           <ChevronsUpDown className="size-4 shrink-0 opacity-50" />
         </Button>
       </DropdownMenuTrigger>
@@ -34,7 +33,7 @@ export function OrgSwitcher({ currentOrgId }: { currentOrgId: string }) {
         {organizations?.map((org) => (
           <DropdownMenuItem
             key={org.id}
-            onClick={() => router.push(routes.organization(org.id))}
+            onClick={() => router.push(routes.organization(org.slug))}
           >
             <Check
               className={cn(

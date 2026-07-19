@@ -9,13 +9,28 @@ export const routes = {
   onboarding: "/onboarding",
   account: "/account",
   acceptInvitation: "/invitations/accept",
-  organization: (orgId: string) => `/orgs/${orgId}`,
-  members: (orgId: string) => `/orgs/${orgId}/members`,
-  invitations: (orgId: string) => `/orgs/${orgId}/invitations`,
-  settings: (orgId: string) => `/orgs/${orgId}/settings`,
-  projects: (orgId: string) => `/orgs/${orgId}/projects`,
-  project: (orgId: string, projectId: string) =>
-    `/orgs/${orgId}/projects/${projectId}`,
-  flag: (orgId: string, projectId: string, flagId: string) =>
-    `/orgs/${orgId}/projects/${projectId}/flags/${flagId}`,
+  // Organizations live at the URL root, addressed by their slug (`/acme-inc/members`).
+  organization: (slug: string) => `/${slug}`,
+  members: (slug: string) => `/${slug}/members`,
+  invitations: (slug: string) => `/${slug}/invitations`,
+  settings: (slug: string) => `/${slug}/settings`,
+  projects: (slug: string) => `/${slug}/projects`,
+  project: (slug: string, projectId: string) =>
+    `/${slug}/projects/${projectId}`,
+  flag: (slug: string, projectId: string, flagId: string) =>
+    `/${slug}/projects/${projectId}/flags/${flagId}`,
 } as const;
+
+/**
+ * Slugs an org can't take because a static root route already owns that path (Next resolves
+ * static routes before the dynamic `[orgSlug]`, so these would be unreachable as an org). The
+ * create-organization route rejects a name that slugifies to one of these.
+ */
+export const RESERVED_SLUGS: ReadonlySet<string> = new Set([
+  "sign-in",
+  "sign-up",
+  "onboarding",
+  "account",
+  "invitations",
+  "api",
+]);

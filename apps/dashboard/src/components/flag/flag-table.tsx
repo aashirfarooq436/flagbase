@@ -15,14 +15,10 @@ import Link from "next/link";
 
 import { routes } from "@/lib/constants/routes";
 import { useFlags } from "@/lib/hooks";
+import { useCurrentOrganization } from "@/lib/providers";
 
-export function FlagTable({
-  organizationId,
-  projectId,
-}: {
-  organizationId: string;
-  projectId: string;
-}) {
+export function FlagTable({ projectId }: { projectId: string }) {
+  const { id: organizationId, slug } = useCurrentOrganization();
   const { data: flags, isLoading } = useFlags(organizationId, projectId);
 
   if (isLoading) {
@@ -50,7 +46,7 @@ export function FlagTable({
           <TableRow key={flag.id}>
             <TableCell>
               <Link
-                href={routes.flag(organizationId, projectId, flag.id)}
+                href={routes.flag(slug, projectId, flag.id)}
                 className="font-mono text-sm hover:underline"
               >
                 {flag.key}

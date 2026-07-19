@@ -17,6 +17,7 @@ import {
 import { toast } from "sonner";
 
 import { useInvitations, useMyRole, useRevokeInvitation } from "@/lib/hooks";
+import { useCurrentOrganization } from "@/lib/providers";
 import { getErrorMessage } from "@/lib/utils/get-error-message";
 
 const statusVariant: Record<
@@ -29,11 +30,8 @@ const statusVariant: Record<
   rejected: "outline",
 };
 
-export function InvitationTable({
-  organizationId,
-}: {
-  organizationId: string;
-}) {
+export function InvitationTable() {
+  const { id: organizationId } = useCurrentOrganization();
   const { data: invitations, isLoading } = useInvitations(organizationId);
   const revoke = useRevokeInvitation(organizationId);
   const isOwner = useMyRole(organizationId) === "owner";

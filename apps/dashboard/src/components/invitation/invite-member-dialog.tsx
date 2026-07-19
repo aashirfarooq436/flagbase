@@ -37,13 +37,11 @@ import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 
 import { useInviteMember, useMyRole } from "@/lib/hooks";
+import { useCurrentOrganization } from "@/lib/providers";
 import { getErrorMessage } from "@/lib/utils/get-error-message";
 
-export function InviteMemberDialog({
-  organizationId,
-}: {
-  organizationId: string;
-}) {
+export function InviteMemberDialog() {
+  const { id: organizationId } = useCurrentOrganization();
   const [open, setOpen] = useState(false);
   const inviteMember = useInviteMember(organizationId);
   const canInvite = useMyRole(organizationId) === "owner";

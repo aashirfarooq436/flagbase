@@ -1,12 +1,7 @@
 import { InvitationTable } from "@/components/invitation/invitation-table";
 import { InviteMemberDialog } from "@/components/invitation/invite-member-dialog";
 
-export default async function InvitationsPage({
-  params,
-}: {
-  params: Promise<{ orgId: string }>;
-}) {
-  const { orgId } = await params;
+export default function InvitationsPage() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between gap-4">
@@ -16,9 +11,9 @@ export default async function InvitationsPage({
             Pending and past invitations.
           </p>
         </div>
-        <InviteMemberDialog organizationId={orgId} />
+        <InviteMemberDialog />
       </div>
-      <InvitationTable organizationId={orgId} />
+      <InvitationTable />
     </div>
   );
 }

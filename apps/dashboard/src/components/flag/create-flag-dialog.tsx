@@ -31,15 +31,11 @@ import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 
 import { useCreateFlag, useMyRole } from "@/lib/hooks";
+import { useCurrentOrganization } from "@/lib/providers";
 import { getErrorMessage } from "@/lib/utils/get-error-message";
 
-export function CreateFlagDialog({
-  organizationId,
-  projectId,
-}: {
-  organizationId: string;
-  projectId: string;
-}) {
+export function CreateFlagDialog({ projectId }: { projectId: string }) {
+  const { id: organizationId } = useCurrentOrganization();
   const [open, setOpen] = useState(false);
   const createFlag = useCreateFlag(organizationId, projectId);
   const role = useMyRole(organizationId);

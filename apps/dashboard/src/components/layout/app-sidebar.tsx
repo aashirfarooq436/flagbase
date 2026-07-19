@@ -7,22 +7,24 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 import { routes } from "@/lib/constants/routes";
+import { useCurrentOrganization } from "@/lib/providers";
 
 /** The authenticated shell's left nav. Org-scoped links, active state from the pathname. */
-export function AppSidebar({ orgId }: { orgId: string }) {
+export function AppSidebar() {
   const pathname = usePathname();
+  const { slug } = useCurrentOrganization();
 
   const items = [
     {
       label: "Overview",
-      href: routes.organization(orgId),
+      href: routes.organization(slug),
       icon: LayoutDashboard,
       exact: true,
     },
-    { label: "Projects", href: routes.projects(orgId), icon: Folder },
-    { label: "Members", href: routes.members(orgId), icon: Users },
-    { label: "Invitations", href: routes.invitations(orgId), icon: Mail },
-    { label: "Settings", href: routes.settings(orgId), icon: Settings },
+    { label: "Projects", href: routes.projects(slug), icon: Folder },
+    { label: "Members", href: routes.members(slug), icon: Users },
+    { label: "Invitations", href: routes.invitations(slug), icon: Mail },
+    { label: "Settings", href: routes.settings(slug), icon: Settings },
   ];
 
   return (

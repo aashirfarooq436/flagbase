@@ -12,30 +12,30 @@ import { routes } from "@/lib/constants/routes";
 export default async function OrganizationOverviewPage({
   params,
 }: {
-  params: Promise<{ orgId: string }>;
+  params: Promise<{ orgSlug: string }>;
 }) {
-  const { orgId } = await params;
+  const { orgSlug } = await params;
 
   const sections = [
     {
       title: "Projects",
       description: "Group and manage your feature flags.",
-      href: routes.projects(orgId),
+      href: routes.projects(orgSlug),
     },
     {
       title: "Members",
       description: "People in this organization and their roles.",
-      href: routes.members(orgId),
+      href: routes.members(orgSlug),
     },
     {
       title: "Invitations",
       description: "Invite teammates and manage pending invites.",
-      href: routes.invitations(orgId),
+      href: routes.invitations(orgSlug),
     },
     {
       title: "Settings",
       description: "Rename this organization.",
-      href: routes.settings(orgId),
+      href: routes.settings(orgSlug),
     },
   ];
 

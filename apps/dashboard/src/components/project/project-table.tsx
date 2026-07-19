@@ -14,8 +14,10 @@ import Link from "next/link";
 
 import { routes } from "@/lib/constants/routes";
 import { useProjects } from "@/lib/hooks";
+import { useCurrentOrganization } from "@/lib/providers";
 
-export function ProjectTable({ organizationId }: { organizationId: string }) {
+export function ProjectTable() {
+  const { id: organizationId, slug } = useCurrentOrganization();
   const { data: projects, isLoading } = useProjects(organizationId);
 
   if (isLoading) {
@@ -42,7 +44,7 @@ export function ProjectTable({ organizationId }: { organizationId: string }) {
           <TableRow key={project.id}>
             <TableCell>
               <Link
-                href={routes.project(organizationId, project.id)}
+                href={routes.project(slug, project.id)}
                 className="font-medium hover:underline"
               >
                 {project.name}

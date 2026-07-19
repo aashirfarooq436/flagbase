@@ -30,9 +30,11 @@ import {
   useRemoveMember,
   useUser,
 } from "@/lib/hooks";
+import { useCurrentOrganization } from "@/lib/providers";
 import { getErrorMessage } from "@/lib/utils/get-error-message";
 
-export function MemberTable({ organizationId }: { organizationId: string }) {
+export function MemberTable() {
+  const { id: organizationId } = useCurrentOrganization();
   const { data: user } = useUser();
   const { data: members, isLoading } = useMembers(organizationId);
   const changeRole = useChangeMemberRole(organizationId);

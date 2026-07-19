@@ -9,16 +9,12 @@ import { toast } from "sonner";
 
 import { routes } from "@/lib/constants/routes";
 import { useDeleteProject, useMyRole, useProject } from "@/lib/hooks";
+import { useCurrentOrganization } from "@/lib/providers";
 import { getErrorMessage } from "@/lib/utils/get-error-message";
 
-export function ProjectHeader({
-  organizationId,
-  projectId,
-}: {
-  organizationId: string;
-  projectId: string;
-}) {
+export function ProjectHeader({ projectId }: { projectId: string }) {
   const router = useRouter();
+  const { id: organizationId, slug } = useCurrentOrganization();
   const { data: project } = useProject(organizationId, projectId);
   const deleteProject = useDeleteProject(organizationId);
   const role = useMyRole(organizationId);
@@ -28,7 +24,7 @@ export function ProjectHeader({
     deleteProject.mutate(projectId, {
       onSuccess: () => {
         toast.success("Project deleted.");
-        router.push(routes.projects(organizationId));
+        router.push(routes.projects(slug));
       },
       onError: (error) => toast.error(getErrorMessage(error)),
     });
@@ -38,7 +34,7 @@ export function ProjectHeader({
     <div className="flex items-center justify-between gap-4">
       <div className="space-y-1">
         <Link
-          href={routes.projects(organizationId)}
+          href={routes.projects(slug)}
           className="text-muted-foreground text-sm hover:underline"
         >
           ← Projects

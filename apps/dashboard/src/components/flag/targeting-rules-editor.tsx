@@ -18,20 +18,20 @@ import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
 import { useFlag, useMyRole, useUpdateFlagRules } from "@/lib/hooks";
+import { useCurrentOrganization } from "@/lib/providers";
 import { getErrorMessage } from "@/lib/utils/get-error-message";
 
 /** Local, editable shape: user IDs as newline-separated text for easy editing. */
 type EditableRule = { userIds: string; value: boolean };
 
 export function TargetingRulesEditor({
-  organizationId,
   projectId,
   flagId,
 }: {
-  organizationId: string;
   projectId: string;
   flagId: string;
 }) {
+  const { id: organizationId } = useCurrentOrganization();
   const { data: flag } = useFlag(organizationId, projectId, flagId);
   const updateRules = useUpdateFlagRules(organizationId, projectId);
   const role = useMyRole(organizationId);

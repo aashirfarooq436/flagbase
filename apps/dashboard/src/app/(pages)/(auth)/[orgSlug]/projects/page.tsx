@@ -1,12 +1,7 @@
 import { CreateProjectDialog } from "@/components/project/create-project-dialog";
 import { ProjectTable } from "@/components/project/project-table";
 
-export default async function ProjectsPage({
-  params,
-}: {
-  params: Promise<{ orgId: string }>;
-}) {
-  const { orgId } = await params;
+export default function ProjectsPage() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between gap-4">
@@ -16,9 +11,9 @@ export default async function ProjectsPage({
             Group your feature flags by project.
           </p>
         </div>
-        <CreateProjectDialog organizationId={orgId} />
+        <CreateProjectDialog />
       </div>
-      <ProjectTable organizationId={orgId} />
+      <ProjectTable />
     </div>
   );
 }

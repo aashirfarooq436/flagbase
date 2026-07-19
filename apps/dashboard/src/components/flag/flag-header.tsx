@@ -15,18 +15,18 @@ import {
   useMyRole,
   useSetFlagEnabled,
 } from "@/lib/hooks";
+import { useCurrentOrganization } from "@/lib/providers";
 import { getErrorMessage } from "@/lib/utils/get-error-message";
 
 export function FlagHeader({
-  organizationId,
   projectId,
   flagId,
 }: {
-  organizationId: string;
   projectId: string;
   flagId: string;
 }) {
   const router = useRouter();
+  const { id: organizationId, slug } = useCurrentOrganization();
   const { data: flag } = useFlag(organizationId, projectId, flagId);
   const setEnabled = useSetFlagEnabled(organizationId, projectId);
   const deleteFlag = useDeleteFlag(organizationId, projectId);
@@ -51,7 +51,7 @@ export function FlagHeader({
     deleteFlag.mutate(flagId, {
       onSuccess: () => {
         toast.success("Flag deleted.");
-        router.push(routes.project(organizationId, projectId));
+        router.push(routes.project(slug, projectId));
       },
       onError: (error) => toast.error(getErrorMessage(error)),
     });
@@ -60,7 +60,7 @@ export function FlagHeader({
   return (
     <div className="space-y-3">
       <Link
-        href={routes.project(organizationId, projectId)}
+        href={routes.project(slug, projectId)}
         className="text-muted-foreground text-sm hover:underline"
       >
         ← Project

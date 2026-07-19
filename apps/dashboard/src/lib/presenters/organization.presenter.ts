@@ -8,6 +8,7 @@ export function toOrganizationResponse(
   return {
     id: organization.id,
     name: organization.name,
+    slug: organization.slug.value,
     createdAt: organization.createdAt.toISOString(),
   };
 }

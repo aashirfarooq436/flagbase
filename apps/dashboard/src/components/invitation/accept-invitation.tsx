@@ -26,9 +26,11 @@ export function AcceptInvitation({ token }: { token: string }) {
     accept.mutate(
       { token },
       {
-        onSuccess: (member) => {
+        onSuccess: () => {
+          // The accept response carries the org id, not its slug — route through the root, which
+          // resolves the user's org and redirects to its slug URL.
           toast.success("You've joined the organization.");
-          router.push(routes.organization(member.organizationId));
+          router.push(routes.home);
         },
         onError: (error) => toast.error(getErrorMessage(error)),
       },
