@@ -1,4 +1,5 @@
 import { composition, ensureConnection } from "@flagbase/composition";
+
 import { redirect } from "next/navigation";
 
 import { AppSidebar } from "@/components/layout/app-sidebar";

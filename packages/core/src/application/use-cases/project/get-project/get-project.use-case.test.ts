@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
 
 import { Project } from "../../../../domain/project/project.entity";
-import { ForbiddenError, NotFoundError } from "../../../../shared/errors";
 import { InMemoryProjectRepository } from "../../../../lib/test-support/in-memory-project.repository";
+import { ForbiddenError, NotFoundError } from "../../../../shared/errors";
 import { GetProjectUseCase } from "./get-project.use-case";
 
 const NOW = new Date("2026-07-17T00:00:00.000Z");

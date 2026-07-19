@@ -1,6 +1,7 @@
 "use client";
 
 import { Toaster } from "@flagbase/ui/components/sonner";
+
 import { ThemeProvider } from "next-themes";
 import { type ReactNode } from "react";
 

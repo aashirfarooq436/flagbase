@@ -1,5 +1,6 @@
-import { AbilityBuilder, createMongoAbility } from "@casl/ability";
 import { Role } from "@flagbase/core";
+
+import { AbilityBuilder, createMongoAbility } from "@casl/ability";
 
 import type { AppAbility } from "./ability";
 

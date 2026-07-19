@@ -1,4 +1,5 @@
 import type { Member, User } from "@flagbase/core";
+
 import type { NextRequest } from "next/server";
 
 import type { AppAbility } from "../abilities";

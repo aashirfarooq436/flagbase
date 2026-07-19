@@ -7,12 +7,6 @@ import {
 import { Member } from "../../../../domain/member/member.entity";
 import { Role } from "../../../../domain/member/role";
 import { User } from "../../../../domain/user/user.entity";
-import { Email } from "../../../../shared/email.vo";
-import {
-  ConflictError,
-  ForbiddenError,
-  NotFoundError,
-} from "../../../../shared/errors";
 import { FakeClock } from "../../../../lib/test-support/fake-clock";
 import { FakeIdGenerator } from "../../../../lib/test-support/fake-id-generator";
 import { FakeTokenHasher } from "../../../../lib/test-support/fake-token-hasher";
@@ -20,6 +14,12 @@ import { FakeUnitOfWork } from "../../../../lib/test-support/fake-unit-of-work";
 import { InMemoryInvitationRepository } from "../../../../lib/test-support/in-memory-invitation.repository";
 import { InMemoryMemberRepository } from "../../../../lib/test-support/in-memory-member.repository";
 import { InMemoryUserRepository } from "../../../../lib/test-support/in-memory-user.repository";
+import { Email } from "../../../../shared/email.vo";
+import {
+  ConflictError,
+  ForbiddenError,
+  NotFoundError,
+} from "../../../../shared/errors";
 import { AcceptInvitationUseCase } from "./accept-invitation.use-case";
 
 const NOW = new Date("2026-07-17T00:00:00.000Z");

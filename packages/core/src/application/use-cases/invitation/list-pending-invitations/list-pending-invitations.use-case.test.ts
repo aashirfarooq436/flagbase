@@ -2,8 +2,8 @@ import { describe, expect, it } from "vitest";
 
 import { Invitation } from "../../../../domain/invitation/invitation.entity";
 import { Role } from "../../../../domain/member/role";
-import { Email } from "../../../../shared/email.vo";
 import { InMemoryInvitationRepository } from "../../../../lib/test-support/in-memory-invitation.repository";
+import { Email } from "../../../../shared/email.vo";
 import { ListPendingInvitationsUseCase } from "./list-pending-invitations.use-case";
 
 const NOW = new Date("2026-07-17T00:00:00.000Z");

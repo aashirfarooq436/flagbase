@@ -1,2 +1,2 @@
-export type { AppAction, AppSubject, AppAbility } from "./ability";
+export type { AppAbility,AppAction, AppSubject } from "./ability";
 export { buildAbilityFor } from "./build-ability";

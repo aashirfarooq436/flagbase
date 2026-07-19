@@ -1,6 +1,6 @@
 import type { Flag } from "../../domain/flag/flag.entity";
-import type { FlagKey } from "../../domain/flag/flag-key.vo";
 import type { IFlagRepository } from "../../domain/flag/flag.repository";
+import type { FlagKey } from "../../domain/flag/flag-key.vo";
 
 /**
  * An in-memory IFlagRepository for testing use-cases with zero infrastructure.

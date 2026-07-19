@@ -1,8 +1,8 @@
 import { composition } from "@flagbase/composition";
 import { renameOrganizationRequestSchema } from "@flagbase/contracts";
 
-import { toOrganizationResponse } from "@/lib/presenters/organization.presenter";
 import { route } from "@/lib/decorators";
+import { toOrganizationResponse } from "@/lib/presenters/organization.presenter";
 
 export const GET = route({
   access: "organization",

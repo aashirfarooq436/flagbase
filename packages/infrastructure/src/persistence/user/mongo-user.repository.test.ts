@@ -1,9 +1,10 @@
 import { ConflictError, Email, User } from "@flagbase/core";
+
 import { describe, expect, it } from "vitest";
 
 import { useMongoTestEnv } from "../../lib/test-support/mongo-test-env";
-import { MongoUserRepository } from "./mongo-user.repository";
 import { UserModel } from "./mongo-user.model";
+import { MongoUserRepository } from "./mongo-user.repository";
 
 const NOW = new Date("2026-07-17T00:00:00.000Z");
 const repository = new MongoUserRepository();

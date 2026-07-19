@@ -5,9 +5,9 @@ import { FlagKey } from "../../../../domain/flag/flag-key.vo";
 import { RolloutPercentage } from "../../../../domain/flag/rollout-percentage.vo";
 import { UserIdListRule } from "../../../../domain/flag/targeting-rule";
 import { Project } from "../../../../domain/project/project.entity";
-import { ForbiddenError, NotFoundError } from "../../../../shared/errors";
 import { InMemoryFlagRepository } from "../../../../lib/test-support/in-memory-flag.repository";
 import { InMemoryProjectRepository } from "../../../../lib/test-support/in-memory-project.repository";
+import { ForbiddenError, NotFoundError } from "../../../../shared/errors";
 import { EvaluateFlagUseCase } from "./evaluate-flag.use-case";
 
 const NOW = new Date("2026-07-17T00:00:00.000Z");

@@ -1,6 +1,7 @@
 "use client";
 
 import type { SignUpRequest } from "@flagbase/contracts";
+
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 import { invalidate } from "../query";

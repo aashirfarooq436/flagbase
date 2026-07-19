@@ -1,6 +1,7 @@
 "use client";
 
 import { cn } from "@flagbase/ui/lib/utils";
+
 import { LayoutDashboard, Settings, Users } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";

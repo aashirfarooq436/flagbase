@@ -1,4 +1,5 @@
 import { CreateFlagUseCase, SignUpUseCase } from "@flagbase/core";
+
 import { describe, expect, it } from "vitest";
 
 import { composition } from "./composition-root";

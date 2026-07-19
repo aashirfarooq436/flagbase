@@ -2,8 +2,8 @@ import {
   Flag,
   FlagKey,
   RolloutPercentage,
-  UserIdListRule,
   type TargetingRule,
+  UserIdListRule,
 } from "@flagbase/core";
 
 import type { FlagDocument, TargetingRuleDocument } from "./mongo-flag.model";

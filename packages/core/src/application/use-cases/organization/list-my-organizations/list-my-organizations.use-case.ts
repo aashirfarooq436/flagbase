@@ -1,6 +1,6 @@
+import type { IMemberRepository } from "../../../../domain/member/member.repository";
 import type { Organization } from "../../../../domain/organization/organization.entity";
 import type { IOrganizationRepository } from "../../../../domain/organization/organization.repository";
-import type { IMemberRepository } from "../../../../domain/member/member.repository";
 import type { IUseCase } from "../../use-case";
 
 export type ListMyOrganizationsInput = {

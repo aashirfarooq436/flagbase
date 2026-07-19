@@ -1,5 +1,6 @@
 import { InvitationStatus, Role } from "@flagbase/core";
-import { type Model, Schema, model, models } from "mongoose";
+
+import { type Model, model, models,Schema } from "mongoose";
 
 export type InvitationDocument = {
   _id: string;

@@ -1,6 +1,6 @@
-import argon2 from "argon2";
-
 import type { IPasswordHasher } from "@flagbase/core";
+
+import argon2 from "argon2";
 
 /**
  * IPasswordHasher backed by argon2 (argon2id by default) — deliberately slow and

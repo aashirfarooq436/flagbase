@@ -1,9 +1,9 @@
 import { describe, expect, it } from "vitest";
 
 import { User } from "../../../../domain/user/user.entity";
+import { InMemoryUserRepository } from "../../../../lib/test-support/in-memory-user.repository";
 import { Email } from "../../../../shared/email.vo";
 import { NotFoundError, ValidationError } from "../../../../shared/errors";
-import { InMemoryUserRepository } from "../../../../lib/test-support/in-memory-user.repository";
 import { UpdateProfileUseCase } from "./update-profile.use-case";
 
 const NOW = new Date("2026-07-17T00:00:00.000Z");

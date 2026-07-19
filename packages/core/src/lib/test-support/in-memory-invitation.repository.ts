@@ -1,9 +1,9 @@
-import type { Email } from "../../shared/email.vo";
 import {
   type Invitation,
   InvitationStatus,
 } from "../../domain/invitation/invitation.entity";
 import type { IInvitationRepository } from "../../domain/invitation/invitation.repository";
+import type { Email } from "../../shared/email.vo";
 
 /** An in-memory IInvitationRepository for testing use-cases with zero infrastructure. */
 export class InMemoryInvitationRepository implements IInvitationRepository {

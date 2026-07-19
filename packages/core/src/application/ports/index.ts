@@ -9,9 +9,9 @@
  * (rollout bucketing is math inside the domain, not a port).
  */
 export type { IClock } from "./clock";
-export type { IIdGenerator } from "./id-generator";
-export type { ITokenGenerator } from "./token-generator";
-export type { IPasswordHasher } from "./password-hasher";
-export type { ITokenHasher } from "./token-hasher";
 export type { IEmailSender } from "./email-sender";
+export type { IIdGenerator } from "./id-generator";
+export type { IPasswordHasher } from "./password-hasher";
+export type { ITokenGenerator } from "./token-generator";
+export type { ITokenHasher } from "./token-hasher";
 export type { IUnitOfWork, TransactionalRepositories } from "./unit-of-work";

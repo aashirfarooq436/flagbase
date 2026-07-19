@@ -1,9 +1,9 @@
 import { describe, expect, it } from "vitest";
 
-import { ValidationError } from "../../../../shared/errors";
 import { FakeClock } from "../../../../lib/test-support/fake-clock";
 import { FakeIdGenerator } from "../../../../lib/test-support/fake-id-generator";
 import { InMemoryProjectRepository } from "../../../../lib/test-support/in-memory-project.repository";
+import { ValidationError } from "../../../../shared/errors";
 import { CreateProjectUseCase } from "./create-project.use-case";
 
 const NOW = new Date("2026-07-17T00:00:00.000Z");

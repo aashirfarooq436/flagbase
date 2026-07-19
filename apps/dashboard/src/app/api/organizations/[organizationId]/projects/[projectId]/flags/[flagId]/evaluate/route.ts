@@ -1,9 +1,10 @@
 import { composition } from "@flagbase/composition";
 import { evaluateFlagRequestSchema } from "@flagbase/contracts";
+
 import { z } from "zod";
 
-import { toEvaluateFlagResponse } from "@/lib/presenters/flag.presenter";
 import { route } from "@/lib/decorators";
+import { toEvaluateFlagResponse } from "@/lib/presenters/flag.presenter";
 
 const paramsSchema = z.object({ flagId: z.string().min(1) });
 

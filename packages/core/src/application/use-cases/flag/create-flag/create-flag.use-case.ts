@@ -1,6 +1,6 @@
-import { FlagKey } from "../../../../domain/flag/flag-key.vo";
 import { Flag } from "../../../../domain/flag/flag.entity";
 import type { IFlagRepository } from "../../../../domain/flag/flag.repository";
+import { FlagKey } from "../../../../domain/flag/flag-key.vo";
 import type { IProjectRepository } from "../../../../domain/project/project.repository";
 import { ConflictError } from "../../../../shared/errors";
 import type { IClock, IIdGenerator } from "../../../ports";

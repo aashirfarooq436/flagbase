@@ -1,6 +1,6 @@
 "use client";
 
-import { signUpRequestSchema, type SignUpRequest } from "@flagbase/contracts";
+import { type SignUpRequest,signUpRequestSchema } from "@flagbase/contracts";
 import { Button } from "@flagbase/ui/components/button";
 import {
   Form,
@@ -11,6 +11,7 @@ import {
   FormMessage,
 } from "@flagbase/ui/components/form";
 import { Input } from "@flagbase/ui/components/input";
+
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";

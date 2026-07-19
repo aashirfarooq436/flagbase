@@ -1,5 +1,5 @@
-import type { FlagKey } from "./flag-key.vo";
 import type { Flag } from "./flag.entity";
+import type { FlagKey } from "./flag-key.vo";
 
 export interface IFlagRepository {
   findById(id: string): Promise<Flag | null>;

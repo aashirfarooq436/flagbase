@@ -5,6 +5,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@flagbase/ui/components/card";
+
 import Link from "next/link";
 
 import { SignUpForm } from "@/components/auth/sign-up-form";

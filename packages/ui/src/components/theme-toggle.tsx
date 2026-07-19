@@ -1,8 +1,5 @@
 "use client";
 
-import { Moon, Sun } from "lucide-react";
-import { useTheme } from "next-themes";
-
 import { Button } from "@flagbase/ui/components/button";
 import {
   DropdownMenu,
@@ -10,6 +7,9 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@flagbase/ui/components/dropdown-menu";
+
+import { Moon, Sun } from "lucide-react";
+import { useTheme } from "next-themes";
 
 /** Light / dark / system theme switch. App-agnostic — lives in the shared UI package. */
 export function ThemeToggle() {

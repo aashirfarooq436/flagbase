@@ -1,5 +1,6 @@
 import { Email } from "@flagbase/core";
 import type { Logger } from "@flagbase/shared/logger";
+
 import { describe, expect, it } from "vitest";
 
 import { Argon2PasswordHasher } from "./argon2-password-hasher";

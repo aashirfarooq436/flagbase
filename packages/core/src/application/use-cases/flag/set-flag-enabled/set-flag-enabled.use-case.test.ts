@@ -3,10 +3,10 @@ import { describe, expect, it } from "vitest";
 import { Flag } from "../../../../domain/flag/flag.entity";
 import { FlagKey } from "../../../../domain/flag/flag-key.vo";
 import { Project } from "../../../../domain/project/project.entity";
-import { ForbiddenError, NotFoundError } from "../../../../shared/errors";
 import { FakeClock } from "../../../../lib/test-support/fake-clock";
 import { InMemoryFlagRepository } from "../../../../lib/test-support/in-memory-flag.repository";
 import { InMemoryProjectRepository } from "../../../../lib/test-support/in-memory-project.repository";
+import { ForbiddenError, NotFoundError } from "../../../../shared/errors";
 import { SetFlagEnabledUseCase } from "./set-flag-enabled.use-case";
 
 const NOW = new Date("2026-07-17T00:00:00.000Z");

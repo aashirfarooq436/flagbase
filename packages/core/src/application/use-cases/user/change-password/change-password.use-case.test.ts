@@ -1,14 +1,14 @@
 import { describe, expect, it } from "vitest";
 
 import { User } from "../../../../domain/user/user.entity";
+import { FakePasswordHasher } from "../../../../lib/test-support/fake-password-hasher";
+import { InMemoryUserRepository } from "../../../../lib/test-support/in-memory-user.repository";
 import { Email } from "../../../../shared/email.vo";
 import {
   NotFoundError,
   UnauthenticatedError,
   ValidationError,
 } from "../../../../shared/errors";
-import { FakePasswordHasher } from "../../../../lib/test-support/fake-password-hasher";
-import { InMemoryUserRepository } from "../../../../lib/test-support/in-memory-user.repository";
 import { ChangePasswordUseCase } from "./change-password.use-case";
 
 const NOW = new Date("2026-07-17T00:00:00.000Z");

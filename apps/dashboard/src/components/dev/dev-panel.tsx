@@ -1,6 +1,7 @@
 "use client";
 
 import { Button } from "@flagbase/ui/components/button";
+
 import { Bug, X } from "lucide-react";
 import { usePathname } from "next/navigation";
 import { useTheme } from "next-themes";

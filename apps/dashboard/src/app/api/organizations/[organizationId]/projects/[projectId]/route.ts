@@ -1,10 +1,11 @@
 import { composition } from "@flagbase/composition";
 import { renameProjectRequestSchema } from "@flagbase/contracts";
 import { HttpStatus } from "@flagbase/shared/http";
+
 import { z } from "zod";
 
-import { toProjectResponse } from "@/lib/presenters/project.presenter";
 import { route } from "@/lib/decorators";
+import { toProjectResponse } from "@/lib/presenters/project.presenter";
 
 const paramsSchema = z.object({ projectId: z.string().min(1) });
 

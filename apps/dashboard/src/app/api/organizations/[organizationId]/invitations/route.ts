@@ -3,8 +3,8 @@ import { inviteMemberRequestSchema } from "@flagbase/contracts";
 import { type Role } from "@flagbase/core";
 import { HttpStatus } from "@flagbase/shared/http";
 
-import { toInvitationResponse } from "@/lib/presenters/invitation.presenter";
 import { route } from "@/lib/decorators";
+import { toInvitationResponse } from "@/lib/presenters/invitation.presenter";
 
 export const GET = route({
   access: "organization",

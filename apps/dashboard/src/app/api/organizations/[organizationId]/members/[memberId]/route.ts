@@ -2,10 +2,11 @@ import { composition } from "@flagbase/composition";
 import { changeMemberRoleRequestSchema } from "@flagbase/contracts";
 import { type Role } from "@flagbase/core";
 import { HttpStatus } from "@flagbase/shared/http";
+
 import { z } from "zod";
 
-import { toMemberResponse } from "@/lib/presenters/member.presenter";
 import { route } from "@/lib/decorators";
+import { toMemberResponse } from "@/lib/presenters/member.presenter";
 
 const paramsSchema = z.object({ memberId: z.string().min(1) });
 

@@ -1,6 +1,6 @@
-import type { Email } from "../../shared/email.vo";
 import type { User } from "../../domain/user/user.entity";
 import type { IUserRepository } from "../../domain/user/user.repository";
+import type { Email } from "../../shared/email.vo";
 
 /** An in-memory IUserRepository for testing use-cases with zero infrastructure. */
 export class InMemoryUserRepository implements IUserRepository {

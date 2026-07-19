@@ -1,12 +1,12 @@
 import { describe, expect, it } from "vitest";
 
 import { Project } from "../../../../domain/project/project.entity";
+import { InMemoryProjectRepository } from "../../../../lib/test-support/in-memory-project.repository";
 import {
   ForbiddenError,
   NotFoundError,
   ValidationError,
 } from "../../../../shared/errors";
-import { InMemoryProjectRepository } from "../../../../lib/test-support/in-memory-project.repository";
 import { RenameProjectUseCase } from "./rename-project.use-case";
 
 const NOW = new Date("2026-07-17T00:00:00.000Z");

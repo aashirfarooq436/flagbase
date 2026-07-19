@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { ROLE_PERMISSIONS, Role, roleHasPermission } from "./role";
+import { Role, ROLE_PERMISSIONS, roleHasPermission } from "./role";
 
 describe("Role permissions", () => {
   it("gives Owner the widest authority", () => {

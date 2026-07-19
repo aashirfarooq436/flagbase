@@ -2,8 +2,8 @@ import { composition } from "@flagbase/composition";
 import { createProjectRequestSchema } from "@flagbase/contracts";
 import { HttpStatus } from "@flagbase/shared/http";
 
-import { toProjectResponse } from "@/lib/presenters/project.presenter";
 import { route } from "@/lib/decorators";
+import { toProjectResponse } from "@/lib/presenters/project.presenter";
 
 export const GET = route({
   access: "organization",

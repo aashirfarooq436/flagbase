@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
 
 import { Organization } from "../../../../domain/organization/organization.entity";
-import { NotFoundError, ValidationError } from "../../../../shared/errors";
 import { InMemoryOrganizationRepository } from "../../../../lib/test-support/in-memory-organization.repository";
+import { NotFoundError, ValidationError } from "../../../../shared/errors";
 import { RenameOrganizationUseCase } from "./rename-organization.use-case";
 
 const NOW = new Date("2026-07-17T00:00:00.000Z");

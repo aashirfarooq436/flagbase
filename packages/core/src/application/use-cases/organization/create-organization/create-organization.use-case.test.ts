@@ -1,12 +1,12 @@
 import { describe, expect, it } from "vitest";
 
 import { Role } from "../../../../domain/member/role";
-import { ValidationError } from "../../../../shared/errors";
 import { FakeClock } from "../../../../lib/test-support/fake-clock";
 import { FakeIdGenerator } from "../../../../lib/test-support/fake-id-generator";
 import { FakeUnitOfWork } from "../../../../lib/test-support/fake-unit-of-work";
 import { InMemoryMemberRepository } from "../../../../lib/test-support/in-memory-member.repository";
 import { InMemoryOrganizationRepository } from "../../../../lib/test-support/in-memory-organization.repository";
+import { ValidationError } from "../../../../shared/errors";
 import { CreateOrganizationUseCase } from "./create-organization.use-case";
 
 const NOW = new Date("2026-07-17T00:00:00.000Z");
