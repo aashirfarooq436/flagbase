@@ -88,4 +88,4 @@ function TabsContent({
   );
 }
 
-export { Tabs, TabsContent, TabsList, tabsListVariants,TabsTrigger };
+export { Tabs, TabsContent, TabsList, tabsListVariants, TabsTrigger };

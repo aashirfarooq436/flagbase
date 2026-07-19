@@ -1,6 +1,6 @@
 // Shared
-export type { ErrorCode, ErrorResponse,FieldError } from "./shared/error";
-export type { AssignableRole,RoleDto } from "./shared/role";
+export type { ErrorCode, ErrorResponse, FieldError } from "./shared/error";
+export type { AssignableRole, RoleDto } from "./shared/role";
 export { assignableRoleSchema } from "./shared/role";
 
 // User

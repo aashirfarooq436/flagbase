@@ -1,6 +1,6 @@
 import { Role } from "@flagbase/core";
 
-import { type Model, model, models,Schema } from "mongoose";
+import { type Model, model, models, Schema } from "mongoose";
 
 export type MemberDocument = {
   _id: string;

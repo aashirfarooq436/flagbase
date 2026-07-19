@@ -1,6 +1,6 @@
 import "server-only";
 
-import { jwtVerify,SignJWT } from "jose";
+import { jwtVerify, SignJWT } from "jose";
 import { cookies } from "next/headers";
 
 import { serverEnv } from "../env";

@@ -1,4 +1,4 @@
-import { type Model, model, models,Schema } from "mongoose";
+import { type Model, model, models, Schema } from "mongoose";
 
 export type UserDocument = {
   _id: string;

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { bucketOf,TOTAL_BUCKETS } from "./bucketing";
+import { bucketOf, TOTAL_BUCKETS } from "./bucketing";
 
 /** Deterministic sample subjects — no randomness, so these tests can never flake. */
 function subjects(count: number): string[] {

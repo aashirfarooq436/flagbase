@@ -3,4 +3,4 @@ export {
   type ConsoleLoggerOptions,
   NoopLogger,
 } from "./console-logger";
-export type { LogContext, Logger,LogLevel } from "./logger";
+export type { LogContext, Logger, LogLevel } from "./logger";

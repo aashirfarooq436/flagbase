@@ -1,6 +1,6 @@
 "use client";
 
-import { type SignInRequest,signInRequestSchema } from "@flagbase/contracts";
+import { type SignInRequest, signInRequestSchema } from "@flagbase/contracts";
 import { Button } from "@flagbase/ui/components/button";
 import {
   Form,
