@@ -2,7 +2,7 @@
 
 import { cn } from "@flagbase/ui/lib/utils";
 
-import { LayoutDashboard, Settings, Users } from "lucide-react";
+import { Folder, LayoutDashboard, Mail, Settings, Users } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
@@ -17,8 +17,11 @@ export function AppSidebar({ orgId }: { orgId: string }) {
       label: "Overview",
       href: routes.organization(orgId),
       icon: LayoutDashboard,
+      exact: true,
     },
+    { label: "Projects", href: routes.projects(orgId), icon: Folder },
     { label: "Members", href: routes.members(orgId), icon: Users },
+    { label: "Invitations", href: routes.invitations(orgId), icon: Mail },
     { label: "Settings", href: routes.settings(orgId), icon: Settings },
   ];
 
@@ -26,7 +29,9 @@ export function AppSidebar({ orgId }: { orgId: string }) {
     <aside className="flex w-56 shrink-0 flex-col border-r p-3">
       <nav className="flex flex-col gap-1">
         {items.map((item) => {
-          const active = pathname === item.href;
+          const active = item.exact
+            ? pathname === item.href
+            : pathname.startsWith(item.href);
           return (
             <Link
               key={item.href}

@@ -5,6 +5,7 @@ import { FakePasswordHasher } from "../../../../lib/test-support/fake-password-h
 import { InMemoryUserRepository } from "../../../../lib/test-support/in-memory-user.repository";
 import { Email } from "../../../../shared/email.vo";
 import {
+  NotFoundError,
   UnauthenticatedError,
   ValidationError,
 } from "../../../../shared/errors";
@@ -54,12 +55,12 @@ describe("SignInUseCase", () => {
     ).rejects.toBeInstanceOf(UnauthenticatedError);
   });
 
-  it("throws UnauthenticatedError for an unknown email (same error as wrong password)", async () => {
+  it("throws NotFoundError for an unknown email", async () => {
     const { useCase } = setup();
-    // Identical error type + message to the wrong-password case — no account enumeration.
+    // Product decision: a missing account is a distinct 404 (see the use-case's tradeoff note).
     await expect(
       useCase.execute({ email: "nobody@example.com", password: "s3cur3-pass" }),
-    ).rejects.toThrow("Invalid email or password");
+    ).rejects.toBeInstanceOf(NotFoundError);
   });
 
   it("rejects a malformed email with a validation error", async () => {

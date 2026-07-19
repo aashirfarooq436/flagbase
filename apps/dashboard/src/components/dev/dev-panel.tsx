@@ -1,13 +1,15 @@
 "use client";
 
+import type { UserResponse } from "@flagbase/contracts";
 import { Button } from "@flagbase/ui/components/button";
 
+import { skipToken, useQuery } from "@tanstack/react-query";
 import { Bug, X } from "lucide-react";
 import { usePathname } from "next/navigation";
 import { useTheme } from "next-themes";
 import { useState } from "react";
 
-import { useUser } from "@/lib/hooks";
+import { authKeys } from "@/lib/query";
 import { useUiStore } from "@/lib/store/ui.store";
 
 /**
@@ -19,7 +21,13 @@ import { useUiStore } from "@/lib/store/ui.store";
 export function DevPanel() {
   const [open, setOpen] = useState(false);
 
-  const { data: user, status } = useUser();
+  // Observe the cached session WITHOUT fetching — the dev panel must be side-effect-free, so it
+  // never triggers a /users/me request (which would 401 on the signed-out sign-in/up pages).
+  // On authed pages the topbar's useUser populates this cache and the panel reflects it.
+  const { data: user, status } = useQuery<UserResponse>({
+    queryKey: authKeys.me,
+    queryFn: skipToken,
+  });
   const uiStore = useUiStore();
   const pathname = usePathname();
   const { theme, resolvedTheme } = useTheme();

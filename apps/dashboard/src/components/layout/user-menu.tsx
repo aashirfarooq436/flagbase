@@ -11,6 +11,7 @@ import {
   DropdownMenuTrigger,
 } from "@flagbase/ui/components/dropdown-menu";
 
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 
 import { routes } from "@/lib/constants/routes";
@@ -23,7 +24,12 @@ export function UserMenu() {
 
   function onSignOut() {
     signOut.mutate(undefined, {
-      onSuccess: () => router.push(routes.signIn),
+      // replace (not push) so the back button can't re-enter the authed area, and refresh()
+      // to purge the server-component cache — a clean break to the public sign-in screen.
+      onSuccess: () => {
+        router.replace(routes.signIn);
+        router.refresh();
+      },
     });
   }
 
@@ -46,6 +52,10 @@ export function UserMenu() {
             {user?.email}
           </span>
         </DropdownMenuLabel>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem asChild>
+          <Link href={routes.account}>Account</Link>
+        </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem onClick={onSignOut} disabled={signOut.isPending}>
           Sign out

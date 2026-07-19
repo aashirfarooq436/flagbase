@@ -22,6 +22,7 @@ export {
   useRemoveMember,
 } from "./use-members";
 export { useMyOrganizations } from "./use-my-organizations";
+export { useMyRole } from "./use-my-role";
 export { useOrganization, useRenameOrganization } from "./use-organization";
 export { useChangePassword, useUpdateProfile } from "./use-profile";
 export {
