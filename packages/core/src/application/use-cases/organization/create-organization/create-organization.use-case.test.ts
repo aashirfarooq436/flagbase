@@ -6,7 +6,7 @@ import { FakeIdGenerator } from "../../../../lib/test-support/fake-id-generator"
 import { FakeUnitOfWork } from "../../../../lib/test-support/fake-unit-of-work";
 import { InMemoryMemberRepository } from "../../../../lib/test-support/in-memory-member.repository";
 import { InMemoryOrganizationRepository } from "../../../../lib/test-support/in-memory-organization.repository";
-import { ValidationError } from "../../../../shared/errors";
+import { ConflictError, ValidationError } from "../../../../shared/errors";
 import { CreateOrganizationUseCase } from "./create-organization.use-case";
 
 const NOW = new Date("2026-07-17T00:00:00.000Z");
@@ -42,6 +42,16 @@ describe("CreateOrganizationUseCase", () => {
     const org = await useCase.execute({ name: "Acme", ownerUserId: "user-1" });
 
     expect(await members.countOwners(org.id)).toBe(1);
+  });
+
+  it("rejects a second organization whose name slugs to a taken slug", async () => {
+    const { useCase } = setup();
+    await useCase.execute({ name: "Acme", ownerUserId: "user-1" });
+
+    // "acme" slugifies to the same "acme" — the slug is already taken.
+    await expect(
+      useCase.execute({ name: "acme", ownerUserId: "user-2" }),
+    ).rejects.toBeInstanceOf(ConflictError);
   });
 
   it("rejects an empty name before writing anything", async () => {

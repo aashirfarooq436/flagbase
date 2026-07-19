@@ -7,6 +7,7 @@ export class OrganizationMapper {
     return new Organization({
       id: document._id,
       name: document.name,
+      slug: document.slug,
       createdAt: document.createdAt,
     });
   }
@@ -15,6 +16,7 @@ export class OrganizationMapper {
     return {
       _id: organization.id,
       name: organization.name,
+      slug: organization.slug.value,
       createdAt: organization.createdAt,
     };
   }

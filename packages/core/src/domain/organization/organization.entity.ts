@@ -2,6 +2,7 @@
  * Organization (persisted shape)
  *   id         string
  *   name       string
+ *   slug       string   (URL-safe, unique, immutable — the org's dashboard address)
  *   createdAt  Date
  *
  * No ownerId — the owner is the Member whose role is Owner (see below).
@@ -9,12 +10,14 @@
 
 import { Entity } from "../../shared/entity";
 import { ValidationError } from "../../shared/errors";
+import { Slug } from "./slug.vo";
 
 const MAX_NAME_LENGTH = 100;
 
 export type OrganizationProps = {
   id: string;
   name: string;
+  slug: string;
   createdAt: Date;
 };
 
@@ -32,6 +35,8 @@ export type OrganizationProps = {
  */
 export class Organization extends Entity {
   readonly createdAt: Date;
+  /** Immutable — derived once from the initial name; `rename` never touches it. */
+  readonly slug: Slug;
 
   private _name: string;
 
@@ -41,6 +46,7 @@ export class Organization extends Entity {
     Organization.assertValidName(props.name);
 
     this._name = props.name;
+    this.slug = new Slug(props.slug);
     this.createdAt = props.createdAt;
   }
 
@@ -48,6 +54,8 @@ export class Organization extends Entity {
     return new Organization({
       id: input.id,
       name: input.name,
+      // Derived once from the name at creation; the slug is stable for the org's lifetime.
+      slug: Slug.fromName(input.name).value,
       createdAt: input.now,
     });
   }

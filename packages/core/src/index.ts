@@ -61,6 +61,10 @@ export {
   GetOrganizationUseCase,
 } from "./application/use-cases/organization/get-organization/get-organization.use-case";
 export {
+  type GetOrganizationBySlugInput,
+  GetOrganizationBySlugUseCase,
+} from "./application/use-cases/organization/get-organization-by-slug/get-organization-by-slug.use-case";
+export {
   type ListMyOrganizationsInput,
   ListMyOrganizationsUseCase,
 } from "./application/use-cases/organization/list-my-organizations/list-my-organizations.use-case";
@@ -73,6 +77,7 @@ export {
   type OrganizationProps,
 } from "./domain/organization/organization.entity";
 export type { IOrganizationRepository } from "./domain/organization/organization.repository";
+export { Slug } from "./domain/organization/slug.vo";
 
 // Member
 export {

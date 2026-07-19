@@ -1,6 +1,7 @@
 import { Member } from "../../../../domain/member/member.entity";
 import { Role } from "../../../../domain/member/role";
 import { Organization } from "../../../../domain/organization/organization.entity";
+import { ConflictError } from "../../../../shared/errors";
 import type { IClock, IIdGenerator } from "../../../ports";
 import type { IUnitOfWork } from "../../../ports/unit-of-work";
 import type { IUseCase } from "../../use-case";
@@ -47,6 +48,16 @@ export class CreateOrganizationUseCase implements IUseCase<
     });
 
     await this.unitOfWork.run(async (repos) => {
+      // Slug uniqueness is a cross-row invariant — the friendly pre-check inside the
+      // transaction, backstopped by the DB unique index that also throws ConflictError, so it
+      // stays correct under a concurrent create of the same name.
+      const slugTaken = await repos.organizations.findBySlug(organization.slug);
+      if (slugTaken !== null) {
+        throw new ConflictError(
+          "An organization with this name already exists",
+        );
+      }
+
       await repos.organizations.save(organization);
       await repos.members.save(owner);
     });
