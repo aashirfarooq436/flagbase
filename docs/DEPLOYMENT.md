@@ -4,10 +4,10 @@ FlagBase is a Turborepo monorepo; only **`apps/dashboard`** (the Next.js app) is
 
 ## Environments
 
-| Vercel slot | Branch | Purpose | Set up now? |
-| --- | --- | --- | --- |
-| Primary deployment (Vercel labels it "Production") | `develop` | **Staging** | ✅ yes |
-| Real production | `main` | Production | later — `main` is ~45 commits behind `develop` |
+| Vercel slot                                        | Branch    | Purpose     | Set up now?                                    |
+| -------------------------------------------------- | --------- | ----------- | ---------------------------------------------- |
+| Primary deployment (Vercel labels it "Production") | `develop` | **Staging** | ✅ yes                                         |
+| Real production                                    | `main`    | Production  | later — `main` is ~45 commits behind `develop` |
 
 Vercel's "Production" is just its name for the primary deployment of the tracked branch — **not**
 your app's production. We point it at `develop`, so **`develop` is your live staging**. When `main`
@@ -39,11 +39,11 @@ behind and has no app).
 
 Project → **Settings → Environment Variables**. Add to **Production** and **Preview**:
 
-| Key | Value |
-| --- | --- |
-| `MONGODB_URI` | Atlas connection string for staging — include a dedicated DB name, e.g. `…mongodb.net/flagbase_staging`. |
-| `SESSION_SECRET` | A **new** random ≥32-char secret: `openssl rand -base64 32`. Do **not** reuse the local one. |
-| `SESSION_COOKIE_NAME` | _(optional)_ — defaults to `flagbase_session`. |
+| Key                   | Value                                                                                                    |
+| --------------------- | -------------------------------------------------------------------------------------------------------- |
+| `MONGODB_URI`         | Atlas connection string for staging — include a dedicated DB name, e.g. `…mongodb.net/flagbase_staging`. |
+| `SESSION_SECRET`      | A **new** random ≥32-char secret: `openssl rand -base64 32`. Do **not** reuse the local one.             |
+| `SESSION_COOKIE_NAME` | _(optional)_ — defaults to `flagbase_session`.                                                           |
 
 Do **not** set `NODE_ENV`; Vercel manages it (always `production` on deployments).
 
@@ -77,4 +77,7 @@ Push to `develop` (or hit **Redeploy**). Staging is served at the project's prim
    under **Production**; keep the staging values under **Preview** (which `develop` now uses).
    Optionally give `develop` a stable domain (**Settings → Domains** → assign to the `develop` branch).
 4. Result: `main` → production, `develop` → staging.
+
+```
+
 ```

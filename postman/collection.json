@@ -135,14 +135,8 @@
             },
             "url": {
               "raw": "{{baseUrl}}/api/auth/sign-up",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "auth",
-                "sign-up"
-              ]
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "sign-up"]
             },
             "description": "Registers a new user and starts their session. 409 if the email is taken; 400 with field errors on invalid input. A unique email is generated per run."
           }
@@ -180,14 +174,8 @@
             },
             "url": {
               "raw": "{{baseUrl}}/api/auth/sign-in",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "auth",
-                "sign-in"
-              ]
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "sign-in"]
             },
             "description": "Signs in with the email from the last Sign Up. 401 with one generic message for both unknown-email and wrong-password (no account enumeration)."
           }
@@ -217,14 +205,8 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/api/users/me",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "users",
-                "me"
-              ]
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "users", "me"]
             },
             "description": "Returns the authenticated user from the session cookie. 401 if not signed in."
           }
@@ -261,14 +243,8 @@
             },
             "url": {
               "raw": "{{baseUrl}}/api/users/me",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "users",
-                "me"
-              ]
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "users", "me"]
             },
             "description": "Updates the current user's display name."
           }
@@ -305,15 +281,8 @@
             },
             "url": {
               "raw": "{{baseUrl}}/api/users/me/change-password",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "users",
-                "me",
-                "change-password"
-              ]
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "users", "me", "change-password"]
             },
             "description": "Changes the password. 204 on success; 401/400 if the current password is wrong. A command (POST to a verb), not a resource update. Note: this changes the password for the rest of the run."
           }
@@ -343,13 +312,8 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/api/organizations",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "organizations"
-              ]
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "organizations"]
             },
             "description": "Lists the organizations the current user belongs to."
           }
@@ -391,13 +355,8 @@
             },
             "url": {
               "raw": "{{baseUrl}}/api/organizations",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "organizations"
-              ]
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "organizations"]
             },
             "description": "Creates an org owned by the current user (onboarding). Saves the new id to `orgId`."
           }
@@ -421,14 +380,8 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/api/organizations/{{orgId}}",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "organizations",
-                "{{orgId}}"
-              ]
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "organizations", "{{orgId}}"]
             },
             "description": "Fetches one organization the caller belongs to. 403 if not a member, 404 if unknown."
           }
@@ -465,14 +418,8 @@
             },
             "url": {
               "raw": "{{baseUrl}}/api/organizations/{{orgId}}",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "organizations",
-                "{{orgId}}"
-              ]
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "organizations", "{{orgId}}"]
             },
             "description": "Renames the org. Requires the owner's ability (Admin/Member are read-only on the org in the current policy)."
           }
@@ -504,15 +451,8 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/api/organizations/{{orgId}}/members",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "organizations",
-                "{{orgId}}",
-                "members"
-              ]
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "organizations", "{{orgId}}", "members"]
             },
             "description": "Lists the org's members. Captures the first member's id into `memberId`."
           }
@@ -549,9 +489,7 @@
             },
             "url": {
               "raw": "{{baseUrl}}/api/organizations/{{orgId}}/members/{{memberId}}",
-              "host": [
-                "{{baseUrl}}"
-              ],
+              "host": ["{{baseUrl}}"],
               "path": [
                 "api",
                 "organizations",
@@ -581,9 +519,7 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/api/organizations/{{orgId}}/members/{{memberId}}",
-              "host": [
-                "{{baseUrl}}"
-              ],
+              "host": ["{{baseUrl}}"],
               "path": [
                 "api",
                 "organizations",
@@ -620,15 +556,8 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/api/organizations/{{orgId}}/invitations",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "organizations",
-                "{{orgId}}",
-                "invitations"
-              ]
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "organizations", "{{orgId}}", "invitations"]
             },
             "description": "Lists the org's invitations (pending + historical)."
           }
@@ -672,15 +601,8 @@
             },
             "url": {
               "raw": "{{baseUrl}}/api/organizations/{{orgId}}/invitations",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "organizations",
-                "{{orgId}}",
-                "invitations"
-              ]
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "organizations", "{{orgId}}", "invitations"]
             },
             "description": "Creates a pending invitation and emails a token (never returned on the wire — see the console log locally). Saves `invitationId`."
           }
@@ -703,9 +625,7 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/api/organizations/{{orgId}}/invitations/{{invitationId}}",
-              "host": [
-                "{{baseUrl}}"
-              ],
+              "host": ["{{baseUrl}}"],
               "path": [
                 "api",
                 "organizations",
@@ -755,14 +675,8 @@
             },
             "url": {
               "raw": "{{baseUrl}}/api/invitations/accept",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "invitations",
-                "accept"
-              ]
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "invitations", "accept"]
             },
             "description": "Accepts an invitation, adding the current user to the org. Set `invitationToken` from the invite email/console log."
           }
@@ -799,14 +713,8 @@
             },
             "url": {
               "raw": "{{baseUrl}}/api/invitations/reject",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "invitations",
-                "reject"
-              ]
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "invitations", "reject"]
             },
             "description": "Rejects an invitation. Set `invitationToken` from the invite email/console log."
           }
@@ -836,15 +744,8 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/api/organizations/{{orgId}}/projects",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "organizations",
-                "{{orgId}}",
-                "projects"
-              ]
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "organizations", "{{orgId}}", "projects"]
             },
             "description": "Lists the org's projects."
           }
@@ -886,15 +787,8 @@
             },
             "url": {
               "raw": "{{baseUrl}}/api/organizations/{{orgId}}/projects",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "organizations",
-                "{{orgId}}",
-                "projects"
-              ]
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "organizations", "{{orgId}}", "projects"]
             },
             "description": "Creates a project in the org. Saves `projectId`."
           }
@@ -917,9 +811,7 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/api/organizations/{{orgId}}/projects/{{projectId}}",
-              "host": [
-                "{{baseUrl}}"
-              ],
+              "host": ["{{baseUrl}}"],
               "path": [
                 "api",
                 "organizations",
@@ -963,9 +855,7 @@
             },
             "url": {
               "raw": "{{baseUrl}}/api/organizations/{{orgId}}/projects/{{projectId}}",
-              "host": [
-                "{{baseUrl}}"
-              ],
+              "host": ["{{baseUrl}}"],
               "path": [
                 "api",
                 "organizations",
@@ -1002,9 +892,7 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/api/organizations/{{orgId}}/projects/{{projectId}}/flags",
-              "host": [
-                "{{baseUrl}}"
-              ],
+              "host": ["{{baseUrl}}"],
               "path": [
                 "api",
                 "organizations",
@@ -1055,9 +943,7 @@
             },
             "url": {
               "raw": "{{baseUrl}}/api/organizations/{{orgId}}/projects/{{projectId}}/flags",
-              "host": [
-                "{{baseUrl}}"
-              ],
+              "host": ["{{baseUrl}}"],
               "path": [
                 "api",
                 "organizations",
@@ -1088,9 +974,7 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/api/organizations/{{orgId}}/projects/{{projectId}}/flags/{{flagId}}",
-              "host": [
-                "{{baseUrl}}"
-              ],
+              "host": ["{{baseUrl}}"],
               "path": [
                 "api",
                 "organizations",
@@ -1137,9 +1021,7 @@
             },
             "url": {
               "raw": "{{baseUrl}}/api/organizations/{{orgId}}/projects/{{projectId}}/flags/{{flagId}}",
-              "host": [
-                "{{baseUrl}}"
-              ],
+              "host": ["{{baseUrl}}"],
               "path": [
                 "api",
                 "organizations",
@@ -1186,9 +1068,7 @@
             },
             "url": {
               "raw": "{{baseUrl}}/api/organizations/{{orgId}}/projects/{{projectId}}/flags/{{flagId}}/rules",
-              "host": [
-                "{{baseUrl}}"
-              ],
+              "host": ["{{baseUrl}}"],
               "path": [
                 "api",
                 "organizations",
@@ -1236,9 +1116,7 @@
             },
             "url": {
               "raw": "{{baseUrl}}/api/organizations/{{orgId}}/projects/{{projectId}}/flags/{{flagId}}/evaluate",
-              "host": [
-                "{{baseUrl}}"
-              ],
+              "host": ["{{baseUrl}}"],
               "path": [
                 "api",
                 "organizations",
@@ -1271,9 +1149,7 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/api/organizations/{{orgId}}/projects/{{projectId}}/flags/{{flagId}}",
-              "host": [
-                "{{baseUrl}}"
-              ],
+              "host": ["{{baseUrl}}"],
               "path": [
                 "api",
                 "organizations",
@@ -1311,9 +1187,7 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/api/organizations/{{orgId}}/projects/{{projectId}}",
-              "host": [
-                "{{baseUrl}}"
-              ],
+              "host": ["{{baseUrl}}"],
               "path": [
                 "api",
                 "organizations",
@@ -1343,14 +1217,8 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/api/auth/sign-out",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "auth",
-                "sign-out"
-              ]
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "sign-out"]
             },
             "description": "Clears the session cookie. Idempotent — safe with no/expired session."
           }

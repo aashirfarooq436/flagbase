@@ -43,14 +43,14 @@ A full top-to-bottom Collection Run works: it walks create → read → update f
 gathers the destructive deletes in **Teardown** at the end.
 
 | #   | Folder                 | What it does                                                              |
-| --- | ---------------------- | ------------------------------------------------------------------------ |
-| 1   | **Auth**               | Sign Up (unique email each run) → Sign In                                |
+| --- | ---------------------- | ------------------------------------------------------------------------- |
+| 1   | **Auth**               | Sign Up (unique email each run) → Sign In                                 |
 | 2   | **User**               | Get / Update profile at `/api/users/me`, Change Password                  |
-| 3   | **Organizations**      | List → Create (saves `orgId`) → Get → Rename                             |
-| 4   | **Members**            | List (saves `memberId`) → Change Role → Remove — see the note below      |
-| 5   | **Invitations**        | List → Invite (saves `invitationId`) → Revoke                            |
-| 6   | **Invitation Actions** | Accept / Reject by token — see the note below                            |
-| 7   | **Projects**           | List → Create (saves `projectId`) → Get → Rename                        |
+| 3   | **Organizations**      | List → Create (saves `orgId`) → Get → Rename                              |
+| 4   | **Members**            | List (saves `memberId`) → Change Role → Remove — see the note below       |
+| 5   | **Invitations**        | List → Invite (saves `invitationId`) → Revoke                             |
+| 6   | **Invitation Actions** | Accept / Reject by token — see the note below                             |
+| 7   | **Projects**           | List → Create (saves `projectId`) → Get → Rename                          |
 | 8   | **Flags**              | List → Create (saves `flagId`) → Get → Toggle → Rules → Evaluate → Delete |
 | 9   | **Teardown**           | Delete Project → Sign Out                                                 |
 
@@ -77,7 +77,7 @@ Set on the collection (**Variables** tab); `baseUrl` also comes from the environ
 | ---------------------------------------------------------- | ----------------------------------------------------------------- |
 | `baseUrl`                                                  | Server origin                                                     |
 | `name`, `password`, `newPassword`                          | Sample user data                                                  |
-| `orgName`, `projectName`, `flagKey`, `inviteEmail`         | Sample resource data                                             |
+| `orgName`, `projectName`, `flagKey`, `inviteEmail`         | Sample resource data                                              |
 | `email`                                                    | Set automatically by Sign Up; reused by Sign In / profile         |
 | `orgId`, `projectId`, `flagId`, `memberId`, `invitationId` | Captured from their create/list requests                          |
 | `invitationToken`                                          | **Manual** — paste from the invite email/console to Accept/Reject |

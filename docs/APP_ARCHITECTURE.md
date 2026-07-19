@@ -30,15 +30,15 @@ directly** (only `composition` constructs concrete repositories).
 
 Everything app-agnostic lives in `packages/`. The apps are thin.
 
-| Package                      | Holds                                                                                                                                                                                                 | Consumed by                       | Status                                                           |
-| ---------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------- | ---------------------------------------------------------------- |
-| `packages/ui`                | Design system: **atomic** shadcn primitives, design tokens (CSS vars), Tailwind preset, `ThemeProvider`, `cn()`, lucide re-export                                                                     | dashboard **+ admin**             | build now                                                        |
-| `packages/eslint-config`     | Shared lint config (base / next / react) — owns import ordering (`simple-import-sort`) + unused-import pruning; Prettier is formatting-only                                                            | all                               | build now                                                        |
-| `packages/shared`            | Technical, framework-agnostic toolkit (a `Logger` interface + `ConsoleLogger`; more cross-cutting tools over time). Zero-dep. NOT the domain kernel (`core/src/shared`); **never imported by `core`** | infrastructure, composition, apps | built                                                            |
-| `packages/contracts`         | DTO types + Zod request schemas                                                                                                                                                                       | both apps' clients **and** routes | built                                                            |
-| `packages/composition`       | Wires concrete repos → use-cases. **No web/Next code, ever.**                                                                                                                                         | apps (via imports)                | built                                                            |
-| `packages/web-kit`           | App-agnostic delivery slice: `withDb`, `SessionManager` + `JwtSessionManager`, `BaseApiService` transport + error→toast mapper, React Query client defaults                                           | dashboard **+ admin**             | **planned seam** — lift from dashboard's `lib/` when admin lands |
-| `packages/sdk`               | Published npm client (§7 SYSTEM_DESIGN)                                                                                                                                                               | customer runtimes                 | [v2]                                                             |
+| Package                  | Holds                                                                                                                                                                                                 | Consumed by                       | Status                                                           |
+| ------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------- | ---------------------------------------------------------------- |
+| `packages/ui`            | Design system: **atomic** shadcn primitives, design tokens (CSS vars), Tailwind preset, `ThemeProvider`, `cn()`, lucide re-export                                                                     | dashboard **+ admin**             | build now                                                        |
+| `packages/eslint-config` | Shared lint config (base / next / react) — owns import ordering (`simple-import-sort`) + unused-import pruning; Prettier is formatting-only                                                           | all                               | build now                                                        |
+| `packages/shared`        | Technical, framework-agnostic toolkit (a `Logger` interface + `ConsoleLogger`; more cross-cutting tools over time). Zero-dep. NOT the domain kernel (`core/src/shared`); **never imported by `core`** | infrastructure, composition, apps | built                                                            |
+| `packages/contracts`     | DTO types + Zod request schemas                                                                                                                                                                       | both apps' clients **and** routes | built                                                            |
+| `packages/composition`   | Wires concrete repos → use-cases. **No web/Next code, ever.**                                                                                                                                         | apps (via imports)                | built                                                            |
+| `packages/web-kit`       | App-agnostic delivery slice: `withDb`, `SessionManager` + `JwtSessionManager`, `BaseApiService` transport + error→toast mapper, React Query client defaults                                           | dashboard **+ admin**             | **planned seam** — lift from dashboard's `lib/` when admin lands |
+| `packages/sdk`           | Published npm client (§7 SYSTEM_DESIGN)                                                                                                                                                               | customer runtimes                 | [v2]                                                             |
 
 **Why `composition` and `web-kit` are separate packages:** wiring use-cases (no I/O, no framework)
 and HTTP/session plumbing (Next-coupled) are different concerns. Folding `withDb` into
@@ -188,8 +188,11 @@ inline plumbing, no magic status numbers, full identifier names:
 
 ```ts
 export const POST = route({
-  access: "organization", action: "manage", subject: "Project",
-  body: createProjectRequestSchema, status: HttpStatus.Created,
+  access: "organization",
+  action: "manage",
+  subject: "Project",
+  body: createProjectRequestSchema,
+  status: HttpStatus.Created,
   handle: async ({ body, context }) =>
     toProjectResponse(
       await composition.project.create.execute({
